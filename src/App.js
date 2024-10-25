@@ -1,23 +1,19 @@
-import logo from './logo.svg';
-import './App.css';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Garden, Home, Login,GardenId,GardenList } from './containers/public';
+import { path } from './untils/constant';
+// Trang điều khiển
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="h-screen w-screen bg-primary">
+      <Routes>
+        <Route path={path.GARDENLIST} element={<GardenList />} /> 
+        <Route path={path.GARDENID} element={<GardenId />} /> 
+        <Route path={path.LOGIN} element={<Login />} />
+        <Route path={path.GARDEN} element={<Garden />} />
+        <Route path={path.HOME} element={<Home />}>
+        `</Route>
+      </Routes>
     </div>
   );
 }
