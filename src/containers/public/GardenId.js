@@ -1,26 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom'; // Import useParams để lấy gardenId từ URL
+import { useParams } from 'react-router-dom';
 import { ref, onValue, set } from 'firebase/database';
 import { realtimedb } from '../../firebaseConfig';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 
 const GardenId = () => {
-    const { gardenId } = useParams(); // Lấy gardenId từ URL
+    const { gardenId } = useParams();
     const [soilMoisture, setSoilMoisture] = useState(0);
-    const [pumpStatus, setPumpStatus] = useState('Tắt');
+    const [pumpStatus, setPumpStatus] = useState(0); // 0: Tắt, 1: Bật, 2: Tự động, 20 là tự động đang tắt, 21 là tự động đang bật.
+    const [actualPumpStatus, setActualPumpStatus] = useState('Đang tắt'); // Trạng thái thực tế khi ở chế độ tự động
     const [historyData, setHistoryData] = useState([]);
     const [gardenName, setGardenName] = useState('');
 
     useEffect(() => {
-        if (!gardenId) return; // Nếu không có gardenId, thoát
+        if (!gardenId) return;
 
         const moistureRef = ref(realtimedb, `gardens/${gardenId}/doAmDat`);
         const pumpStatusRef = ref(realtimedb, `gardens/${gardenId}/mayBom/trangThai`);
         const historyRef = ref(realtimedb, `gardens/${gardenId}/doAmDat/history`);
-
-        // Lấy tên khu vườn từ Firebase
         const nameRef = ref(realtimedb, `gardens/${gardenId}/name`);
+
         onValue(nameRef, (snapshot) => {
             const name = snapshot.val();
             if (name) {
@@ -28,7 +28,6 @@ const GardenId = () => {
             }
         });
 
-        // Lắng nghe thay đổi độ ẩm đất
         onValue(moistureRef, (snapshot) => {
             const data = snapshot.val();
             if (data && data.current !== undefined) {
@@ -36,7 +35,6 @@ const GardenId = () => {
             }
         });
 
-        // Lắng nghe thay đổi trạng thái máy bơm
         onValue(pumpStatusRef, (snapshot) => {
             const status = snapshot.val();
             if (status !== null) {
@@ -44,7 +42,6 @@ const GardenId = () => {
             }
         });
 
-        // Lấy dữ liệu lịch sử độ ẩm đất
         onValue(historyRef, (snapshot) => {
             const history = snapshot.val();
             if (history) {
@@ -57,41 +54,22 @@ const GardenId = () => {
         });
     }, [gardenId]);
 
-    // Điều khiển máy bơm
     const handlePumpControl = (status) => {
         const pumpStatusRef = ref(realtimedb, `gardens/${gardenId}/mayBom/trangThai`);
         set(pumpStatusRef, status);
     };
 
-    // Cấu hình biểu đồ lịch sử độ ẩm đất
     const options = {
-        title: {
-            text: 'Lịch sử độ ẩm đất'
-        },
-        xAxis: {
-            type: 'datetime',
-            title: {
-                text: 'Thời gian'
-            },
-        },
-        yAxis: {
-            title: {
-                text: 'Độ ẩm (%)'
-            },
-            min: 0,
-            max: 100,
-        },
+        title: { text: 'Lịch sử độ ẩm đất' },
+        xAxis: { type: 'datetime', title: { text: 'Thời gian' } },
+        yAxis: { title: { text: 'Độ ẩm (%)' }, min: 0, max: 100 },
         series: [{
             name: 'Độ ẩm đất',
             type: 'line',
             data: historyData.map(item => [item.time, item.value]),
-            tooltip: {
-                valueSuffix: ' %'
-            }
+            tooltip: { valueSuffix: ' %' }
         }],
-        credits: {
-            enabled: false
-        }
+        credits: { enabled: false }
     };
 
     return (
@@ -105,30 +83,33 @@ const GardenId = () => {
 
                 <div className='flex gap-4'>
                     <button
-                        onClick={() => handlePumpControl('Bật')}
-                        className={`px-4 py-2 ${pumpStatus === 'Bật' ? 'bg-green-500' : 'bg-gray-500'} text-white rounded-md`}
+                        onClick={() => handlePumpControl(1)}
+                        className={`px-4 py-2 ${pumpStatus === 1 ? 'bg-green-500' : 'bg-gray-500'} text-white rounded-md`}
                     >
                         Bật máy bơm
                     </button>
                     <button
-                        onClick={() => handlePumpControl('Tắt')}
-                        className={`px-4 py-2 ${pumpStatus === 'Tắt' ? 'bg-red-500' : 'bg-gray-500'} text-white rounded-md`}
+                        onClick={() => handlePumpControl(0)}
+                        className={`px-4 py-2 ${pumpStatus === 0 ? 'bg-red-500' : 'bg-gray-500'} text-white rounded-md`}
                     >
                         Tắt máy bơm
                     </button>
                     <button
-                        onClick={() => handlePumpControl('Tự động')}
-                        className={`px-4 py-2 ${pumpStatus === 'Tự động' ? 'bg-blue-500' : 'bg-gray-500'} text-white rounded-md`}
+                        onClick={() => handlePumpControl(20)}
+                        className={`px-4 py-2 ${pumpStatus === 20 || pumpStatus === 21 ? 'bg-blue-500' : 'bg-gray-500'} text-white rounded-md`}
                     >
                         Chế độ tự động
                     </button>
                 </div>
 
                 <div className='mt-4'>
-                    <p>Trạng thái máy bơm hiện tại: <strong>{pumpStatus}</strong></p>
+                    <p>Trạng thái máy bơm hiện tại: <strong>{
+                        pumpStatus === 20 ? 'Trạng thái tự động: Máy bơm đang Tắt' :
+                            pumpStatus === 21 ? 'Trạng thái tự động: Máy bơm đang Bật' :
+                                (pumpStatus === 1 ? 'Bật' : 'Tắt')
+                    }</strong></p>
                 </div>
 
-                {/* Biểu đồ lịch sử độ ẩm đất */}
                 <div className='mt-6'>
                     <HighchartsReact
                         highcharts={Highcharts}
