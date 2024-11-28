@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
 
 
-const Button = ({ text, textColor, bgColor, IcAfter, onClick, fullWidth, px, value, setValue, type = 'text' }) => {
+const Button = ({ text, textColor, bgColor, IcAfter, onClick, fullWidth, px }) => {
     return (
         <button
             type='button'

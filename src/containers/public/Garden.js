@@ -1,129 +1,120 @@
 import React, { useState, useEffect } from 'react';
-import { ref, onValue, set } from 'firebase/database';
-import { realtimedb } from '../../firebaseConfig';
-import Highcharts from 'highcharts';
-import HighchartsReact from 'highcharts-react-official';
+import { getDatabase, ref, get, update, set } from 'firebase/database';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
 
-const Garden = () => {
-    const [soilMoisture, setSoilMoisture] = useState(0);
-    const [pumpStatus, setPumpStatus] = useState('Tắt');
-    const [historyData, setHistoryData] = useState([]);
+const AddGarden = () => {
+    const [key, setKey] = useState('');
+    const [userId, setUserId] = useState(null); // Lưu userId từ thông tin xác thực
+    const navigate = useNavigate();
 
+    // Lấy thông tin người dùng hiện tại
     useEffect(() => {
-        const moistureRef = ref(realtimedb, 'gardens/gardenId1/doAmDat');
-        const pumpStatusRef = ref(realtimedb, 'gardens/gardenId1/mayBom/trangThai');
-        const historyRef = ref(realtimedb, 'gardens/gardenId1/doAmDat/history');
-
-        // Lắng nghe thay đổi độ ẩm đất
-        onValue(moistureRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data && data.current !== undefined) {
-                setSoilMoisture(data.current);
+        const auth = getAuth();
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setUserId(user.uid); // Lưu userId nếu người dùng đã đăng nhập
+            } else {
+                alert('Bạn cần đăng nhập để thực hiện chức năng này.');
+                navigate('/login'); // Chuyển hướng về trang đăng nhập nếu chưa đăng nhập
             }
         });
 
-        // Lắng nghe thay đổi trạng thái máy bơm
-        onValue(pumpStatusRef, (snapshot) => {
-            const status = snapshot.val();
-            if (status !== null) {
-                setPumpStatus(status);
-            }
-        });
+        return () => unsubscribe();
+    }, [navigate]);
 
-        // Lấy dữ liệu lịch sử độ ẩm đất
-        onValue(historyRef, (snapshot) => {
-            const history = snapshot.val();
-            if (history) {
-                const historyArray = Object.keys(history).map(key => ({
-                    time: new Date(history[key].time).getTime(),
-                    value: parseFloat(history[key].value)
-                }));
-                setHistoryData(historyArray);
+    // Hàm xử lý khi người dùng bấm nút Lưu
+    const handleSave = async () => {
+        try {
+            if (!userId) {
+                alert('Không tìm thấy thông tin người dùng.');
+                return;
             }
-        });
-    }, []);
 
-    // Điều khiển máy bơm
-    const handlePumpControl = (status) => {
-        const pumpStatusRef = ref(realtimedb, 'gardens/gardenId1/mayBom/trangThai');
-        set(pumpStatusRef, status);
-    };
+            const db = getDatabase();
 
-    // Cấu hình biểu đồ lịch sử độ ẩm đất
-    const options = {
-        title: {
-            text: 'Lịch sử độ ẩm đất'
-        },
-        xAxis: {
-            type: 'datetime',
-            title: {
-                text: 'Thời gian'
-            },
-        },
-        yAxis: {
-            title: {
-                text: 'Độ ẩm (%)'
-            },
-            min: 0,
-            max: 100,
-        },
-        series: [{
-            name: 'Độ ẩm đất',
-            type: 'line',
-            data: historyData.map(item => [item.time, item.value]),
-            tooltip: {
-                valueSuffix: ' %'
+            // Kiểm tra key trong Firebase
+            const keyRef = ref(db, `keys/${key}`);
+            const keySnapshot = await get(keyRef);
+
+            if (!keySnapshot.exists()) {
+                alert('Key không hợp lệ hoặc không tồn tại.');
+                return;
             }
-        }],
-        credits: {
-            enabled: false
+
+            // Lấy gardenId từ key
+            const gardenId = keySnapshot.val();
+
+            // Kiểm tra xem khu vườn đã được thêm vào danh sách của user chưa
+            const userGardensRef = ref(db, `users/${userId}/gardens/${gardenId}`);
+            const userGardensSnapshot = await get(userGardensRef);
+
+            if (userGardensSnapshot.exists()) {
+                const gardenStatus = userGardensSnapshot.val(); // Lấy trạng thái khu vườn
+
+                if (gardenStatus === true) {
+                    // Nếu khu vườn đã tồn tại và đang ở trạng thái true
+                    alert('Khu vườn này đã tồn tại trong danh sách của bạn.');
+                    return;
+                } else if (gardenStatus === false) {
+                    // Nếu khu vườn tồn tại nhưng trạng thái là false, cập nhật thành true
+                    await set(userGardensRef, true);
+                    alert('Khu vườn đã được kích hoạt lại thành công!');
+                }
+            } else {
+                // Nếu khu vườn chưa tồn tại, thêm khu vườn vào danh sách và gán trạng thái là true
+                const updates = {};
+                updates[`users/${userId}/gardens/${gardenId}`] = true;
+                await update(ref(db), updates);
+
+                alert('Khu vườn đã được thêm thành công vào danh sách của bạn!');
+            }
+
+            navigate('/gardens'); // Chuyển về trang danh sách khu vườn
+        } catch (error) {
+            console.error('Lỗi khi thêm khu vườn:', error);
+            alert('Có lỗi xảy ra khi thêm khu vườn.');
         }
     };
 
+    // Hàm xử lý khi nhấn nút "Trở về trang danh sách"
+    const handleBack = () => {
+        navigate('/gardens'); // Điều hướng về trang danh sách khu vườn
+    };
+
     return (
-        <div className='flex items-center justify-center h-screen bg-gray-100'>
-            <div className='bg-white shadow-md rounded-lg w-1/3 p-6'>
-                <h1 className='text-2xl font-bold text-center mb-4'>Điều khiển Khu vườn 1</h1>
+        <div className='flex flex-col items-center min-h-screen bg-gray-100 py-8'>
+            <h1 className='text-3xl font-extrabold mb-6 text-gray-800'>Thêm Khu Vườn Mới</h1>
 
+            <div className='w-full max-w-md bg-white p-6 rounded-lg shadow-lg'>
                 <div className='mb-4'>
-                    <p>Độ ẩm đất hiện tại: <strong>{soilMoisture}%</strong></p>
-                </div>
-
-                <div className='flex gap-4'>
-                    <button
-                        onClick={() => handlePumpControl('Bật')}
-                        className={`px-4 py-2 ${pumpStatus === 'Bật' ? 'bg-green-500' : 'bg-gray-500'} text-white rounded-md`}
-                    >
-                        Bật máy bơm
-                    </button>
-                    <button
-                        onClick={() => handlePumpControl('Tắt')}
-                        className={`px-4 py-2 ${pumpStatus === 'Tắt' ? 'bg-red-500' : 'bg-gray-500'} text-white rounded-md`}
-                    >
-                        Tắt máy bơm
-                    </button>
-                    <button
-                        onClick={() => handlePumpControl('Tự động')}
-                        className={`px-4 py-2 ${pumpStatus === 'Tự động' ? 'bg-blue-500' : 'bg-gray-500'} text-white rounded-md`}
-                    >
-                        Chế độ tự động
-                    </button>
-                </div>
-
-                <div className='mt-4'>
-                    <p>Trạng thái máy bơm hiện tại: <strong>{pumpStatus}</strong></p>
-                </div>
-
-                {/* Biểu đồ lịch sử độ ẩm đất */}
-                <div className='mt-6'>
-                    <HighchartsReact
-                        highcharts={Highcharts}
-                        options={options}
+                    <label className='block text-gray-700 text-sm font-bold mb-2'>
+                        Nhập key:
+                    </label>
+                    <input
+                        type='text'
+                        value={key}
+                        onChange={(e) => setKey(e.target.value)}
+                        className='w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500'
+                        placeholder='Nhập key khu vườn'
                     />
                 </div>
+
+                <button
+                    onClick={handleSave}
+                    className='w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition duration-200 mb-4'
+                >
+                    Lưu
+                </button>
+                <button
+                    onClick={handleBack}
+                    className='w-full bg-gray-400 text-white py-2 rounded-lg hover:bg-gray-500 transition duration-200'
+                >
+                    Trở về trang danh sách
+                </button>
             </div>
         </div>
     );
 };
 
-export default Garden;
+export default AddGarden;
