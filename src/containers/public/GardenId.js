@@ -35,6 +35,8 @@ const GardenId = () => {
         const maxRef = ref(realtimedb, `gardens/${gardenId}/doAmDat/max`);
         const timeRef = ref(realtimedb, `gardens/${gardenId}/time`);
 
+
+        // Lấy dữ liệu từ Firebase
         onValue(nameRef, (snapshot) => {
             const name = snapshot.val();
             setGardenName(name || '');
