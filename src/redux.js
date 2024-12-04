@@ -1,4 +1,4 @@
-import rootReducer from "./store/reducers/rootReducers";
+import rootReducer from "./store/reducers/rootReducers.js";
 import { persistStore } from "redux-persist";
 import { createStore } from "redux";
 
