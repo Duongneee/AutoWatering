@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { ref, onValue, set } from 'firebase/database';
 import { realtimedb } from '../../firebaseConfig';
-import Highcharts from 'highcharts';
+import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { useNavigate } from 'react-router-dom';
-
 import { auth } from "../../firebaseConfig";  // Lấy thông tin người dùng
-import { update } from "firebase/database";  // Lấy và cập nhật dữ liệu từ Firebase Realtime Database
+
 
 
 
@@ -36,8 +35,6 @@ const GardenId = () => {
         const maxRef = ref(realtimedb, `gardens/${gardenId}/doAmDat/max`);
         const timeRef = ref(realtimedb, `gardens/${gardenId}/time`);
 
-
-        // Lấy dữ liệu từ Firebase
         onValue(nameRef, (snapshot) => {
             const name = snapshot.val();
             setGardenName(name || '');
@@ -84,7 +81,7 @@ const GardenId = () => {
 
         if (!confirmDelete) {
             console.log("Người dùng đã hủy thao tác xóa.");
-            return; // Dừng việc xóa nếu người dùng không xác nhận
+            return;
         }
 
         const userId = user.uid;
@@ -115,39 +112,81 @@ const GardenId = () => {
     };
 
     const handleMinMoistureChange = (e) => {
-        const newMin = e.target.value;
-        setMinMoisture(newMin);
-        const minRef = ref(realtimedb, `gardens/${gardenId}/doAmDat/min`);
-        set(minRef, newMin).catch((error) =>
-            console.error("Lỗi khi cập nhật giá trị min:", error)
-        );
+        const value = e.target.value;
+        const newMin = parseInt(value, 10)
+        if (!isNaN(newMin)) {
+            setMinMoisture(newMin); // Cập nhật state với giá trị mới  
+            const minRef = ref(realtimedb, `gardens/${gardenId}/doAmDat/min`);
+            set(minRef, newMin) // Cập nhật Firebase với giá trị số nguyên  
+                .then(() => console.log("Cập nhật giá trị min thành công:", newMin))
+                .catch((error) =>
+                    console.error("Lỗi khi cập nhật giá trị min:", error)
+                );
+        } else {
+            console.error("Giá trị không hợp lệ:", newMin); // Thông báo nếu giá trị nhập không hợp lệ  
+        }
     };
 
     const handleMaxMoistureChange = (e) => {
-        const newMax = e.target.value;
-        setMaxMoisture(newMax);
-        const maxRef = ref(realtimedb, `gardens/${gardenId}/doAmDat/max`);
-        set(maxRef, newMax).catch((error) =>
-            console.error("Lỗi khi cập nhật giá trị max:", error)
-        );
+        const value = e.target.value; // Lấy giá trị từ ô nhập  
+        const newMax = parseInt(value, 10); // Chuyển đổi giá trị nhập thành số nguyên  
+
+        // Kiểm tra xem giá trị mới có hợp lệ không  
+        if (!isNaN(newMax)) {
+            setMaxMoisture(newMax); // Cập nhật state với giá trị mới  
+            const maxRef = ref(realtimedb, `gardens/${gardenId}/doAmDat/max`);
+            set(maxRef, newMax) // Cập nhật Firebase với giá trị số nguyên  
+                .then(() => console.log("Cập nhật giá trị max thành công:", newMax))
+                .catch((error) =>
+                    console.error("Lỗi khi cập nhật giá trị max:", error)
+                );
+        } else {
+            console.error("Giá trị không hợp lệ:", newMax); // Thông báo nếu giá trị nhập không hợp lệ  
+        }
     };
 
     const handleTimeChange = (e) => {
-        const newTime = parseInt(e.target.value, 10);
-        setTime(newTime);
-        const timeRef = ref(realtimedb, `gardens/${gardenId}/time`);
-        set(timeRef, newTime)
-            .then(() => console.log("Cập nhật thời gian thành công:", newTime))
-            .catch((error) =>
-                console.error("Lỗi khi cập nhật thời gian vào Firebase:", error)
-            );
+        const value = e.target.value; // Lấy giá trị từ ô nhập  
+        const newTime = parseInt(value, 10); // Chuyển đổi giá trị nhập thành số nguyên  
+
+        // Kiểm tra xem giá trị mới có hợp lệ không  
+        if (!isNaN(newTime)) {
+            setTime(newTime); // Cập nhật state với giá trị mới  
+            const timeRef = ref(realtimedb, `gardens/${gardenId}/time`);
+            set(timeRef, newTime) // Cập nhật Firebase với giá trị số nguyên  
+                .then(() => console.log("Cập nhật thời gian thành công:", newTime))
+                .catch((error) =>
+                    console.error("Lỗi khi cập nhật thời gian vào Firebase:", error)
+                );
+        } else {
+            console.error("Giá trị không hợp lệ:", newTime); // Thông báo nếu giá trị nhập không hợp lệ  
+        }
     };
 
 
     const options = {
         title: { text: 'Lịch sử độ ẩm đất' },
-        xAxis: { type: 'datetime', title: { text: 'Thời gian' } },
-        yAxis: { title: { text: 'Độ ẩm (%)' }, min: 0, max: 100 },
+        xAxis: {
+            type: 'datetime',
+            title: { text: 'Thời gian' },
+            dateTimeLabelFormats: {
+                day: '%e %b %Y',
+                month: '%b %Y',
+            },
+        },
+        yAxis: {
+            title: { text: 'Độ ẩm (%)' },
+            min: 0,
+            max: 100,
+        },
+        navigator: {
+            enabled: true,
+            adaptToUpdatedData: true,
+            series: {
+                color: '#666666',
+                lineWidth: 1,
+            },
+        },
         series: [
             {
                 name: 'Độ ẩm đất',
@@ -304,7 +343,7 @@ const GardenId = () => {
                         <HighchartsReact highcharts={Highcharts} options={options} />
                     </div>
                     <button
-                        onClick={() => navigate('/gardens')} // Quay về trang "gardens"
+                        onClick={() => navigate('/gardens')}
                         className="mx-auto block px-6 py-3 bg-green-500 text-white text-lg font-medium rounded-full shadow-lg hover:bg-green-600 hover:scale-105 transition-all duration-300 transform"
                     >
                         Trở về trang chủ
