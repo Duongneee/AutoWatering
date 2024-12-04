@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Garden, Home, Login,GardenId,GardenList } from './containers/public';
 import { path } from './untils/constant';
 // Trang điều khiển
