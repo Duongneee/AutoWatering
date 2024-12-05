@@ -68,6 +68,7 @@ const Register = () => {
                         textColor="text-white"
                         fullWidth
                         type="submit"
+                        onClick={handleRegister}
                     />
                 </form>
                 <div className="flex justify-between items-center mt-6 text-sm">

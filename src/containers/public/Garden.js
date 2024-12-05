@@ -5,25 +5,23 @@ import { useNavigate } from 'react-router-dom';
 
 const AddGarden = () => {
     const [key, setKey] = useState('');
-    const [userId, setUserId] = useState(null); // Lưu userId từ thông tin xác thực
+    const [userId, setUserId] = useState(null);
     const navigate = useNavigate();
 
-    // Lấy thông tin người dùng hiện tại
     useEffect(() => {
         const auth = getAuth();
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                setUserId(user.uid); // Lưu userId nếu người dùng đã đăng nhập
+                setUserId(user.uid);
             } else {
                 alert('Bạn cần đăng nhập để thực hiện chức năng này.');
-                navigate('/login'); // Chuyển hướng về trang đăng nhập nếu chưa đăng nhập
+                navigate('/login');
             }
         });
 
         return () => unsubscribe();
     }, [navigate]);
 
-    // Hàm xử lý khi người dùng bấm nút Lưu
     const handleSave = async () => {
         try {
             if (!userId) {
@@ -32,8 +30,6 @@ const AddGarden = () => {
             }
 
             const db = getDatabase();
-
-            // Kiểm tra key trong Firebase
             const keyRef = ref(db, `keys/${key}`);
             const keySnapshot = await get(keyRef);
 
@@ -42,27 +38,21 @@ const AddGarden = () => {
                 return;
             }
 
-            // Lấy gardenId từ key
             const gardenId = keySnapshot.val();
-
-            // Kiểm tra xem khu vườn đã được thêm vào danh sách của user chưa
             const userGardensRef = ref(db, `users/${userId}/gardens/${gardenId}`);
             const userGardensSnapshot = await get(userGardensRef);
 
             if (userGardensSnapshot.exists()) {
-                const gardenStatus = userGardensSnapshot.val(); // Lấy trạng thái khu vườn
+                const gardenStatus = userGardensSnapshot.val();
 
                 if (gardenStatus === true) {
-                    // Nếu khu vườn đã tồn tại và đang ở trạng thái true
                     alert('Khu vườn này đã tồn tại trong danh sách của bạn.');
                     return;
                 } else if (gardenStatus === false) {
-                    // Nếu khu vườn tồn tại nhưng trạng thái là false, cập nhật thành true
                     await set(userGardensRef, true);
                     alert('Khu vườn đã được kích hoạt lại thành công!');
                 }
             } else {
-                // Nếu khu vườn chưa tồn tại, thêm khu vườn vào danh sách và gán trạng thái là true
                 const updates = {};
                 updates[`users/${userId}/gardens/${gardenId}`] = true;
                 await update(ref(db), updates);
@@ -70,45 +60,44 @@ const AddGarden = () => {
                 alert('Khu vườn đã được thêm thành công vào danh sách của bạn!');
             }
 
-            navigate('/gardens'); // Chuyển về trang danh sách khu vườn
+            navigate('/gardens');
         } catch (error) {
             console.error('Lỗi khi thêm khu vườn:', error);
             alert('Có lỗi xảy ra khi thêm khu vườn.');
         }
     };
 
-    // Hàm xử lý khi nhấn nút "Trở về trang danh sách"
     const handleBack = () => {
-        navigate('/gardens'); // Điều hướng về trang danh sách khu vườn
+        navigate('/gardens');
     };
 
     return (
-        <div className='flex flex-col items-center min-h-screen bg-gray-100 py-8'>
-            <h1 className='text-3xl font-extrabold mb-6 text-gray-800'>Thêm Khu Vườn Mới</h1>
-
-            <div className='w-full max-w-md bg-white p-6 rounded-lg shadow-lg'>
+        <div className='flex flex-col items-center min-h-screen bg-gradient-to-br from-green-200 to-blue-100 py-10'>
+            <div className='bg-white shadow-2xl rounded-lg p-8 w-full max-w-lg'>
+                <h1 className='text-2xl font-bold text-gray-700 mb-6 text-center'>
+                    Thêm Khu Vườn Mới
+                </h1>
                 <div className='mb-4'>
-                    <label className='block text-gray-700 text-sm font-bold mb-2'>
-                        Nhập key:
+                    <label className='block text-gray-600 font-medium mb-2'>
+                        Nhập key khu vườn:
                     </label>
                     <input
                         type='text'
                         value={key}
                         onChange={(e) => setKey(e.target.value)}
-                        className='w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500'
+                        className='w-full px-4 py-2 rounded-lg border focus:ring focus:ring-green-300 focus:outline-none'
                         placeholder='Nhập key khu vườn'
                     />
                 </div>
-
                 <button
                     onClick={handleSave}
-                    className='w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition duration-200 mb-4'
+                    className='w-full bg-green-500 text-white py-3 rounded-lg font-semibold text-lg shadow-md hover:bg-green-600 transition-transform transform hover:scale-105 mb-4'
                 >
                     Lưu
                 </button>
                 <button
                     onClick={handleBack}
-                    className='w-full bg-gray-400 text-white py-2 rounded-lg hover:bg-gray-500 transition duration-200'
+                    className='w-full bg-gray-400 text-white py-3 rounded-lg font-semibold text-lg shadow-md hover:bg-gray-500 transition-transform transform hover:scale-105'
                 >
                     Trở về trang danh sách
                 </button>

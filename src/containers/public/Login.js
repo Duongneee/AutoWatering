@@ -55,6 +55,7 @@ const Login = () => {
                         textColor="text-white"
                         fullWidth
                         type="submit"
+                        onClick={handleLogin}
                     />
                 </form>
                 <div className="flex justify-between items-center mt-6 text-sm">
