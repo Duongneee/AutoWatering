@@ -350,7 +350,6 @@ const GardenId = () => {
                     >
                         Trở về trang chủ
                     </button>
-
                 </div>
             </div>
         </div>
