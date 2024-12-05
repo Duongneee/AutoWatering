@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import { Garden, Home, Login,GardenId,GardenList } from './containers/public';
+import { Garden, Home, Login,GardenId,GardenList,Register } from './containers/public';
 import { path } from './untils/constant';
 // Trang điều khiển
 
@@ -11,8 +11,9 @@ function App() {
         <Route path={path.GARDENID} element={<GardenId />} /> 
         <Route path={path.LOGIN} element={<Login />} />
         <Route path={path.GARDEN} element={<Garden />} />
-        <Route path={path.HOME} element={<Home />}>
-        `</Route>
+        <Route path={path.HOME} element={<Home />}/>
+        <Route path={path.REGISTER} element={< Register/>}/>
+   
       </Routes>
     </div>
   );

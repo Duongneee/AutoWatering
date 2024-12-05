@@ -3,38 +3,44 @@ import { InputForm, Button } from '../../components';
 import { useNavigate } from 'react-router-dom';
 import { path } from '../../untils/constant';
 import { auth } from '../../firebaseConfig';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
-const Login = () => {
+const Register = () => {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
 
-    const handleLogin = async (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault();
+        if (password !== confirmPassword) {
+            setError('Mật khẩu không khớp!');
+            return;
+        }
+
         try {
-            await signInWithEmailAndPassword(auth, email, password);
-            console.log('User logged in');
-            navigate(path.GARDENLIST);
+            await createUserWithEmailAndPassword(auth, email, password);
+            console.log('User registered successfully');
+            navigate(path.LOGIN);
         } catch (error) {
             setError(error.message);
-            console.error('Login failed:', error.message);
+            console.error('Registration failed:', error.message);
         }
     };
 
     return (
-        <div className="flex items-center justify-center h-screen bg-gradient-to-br from-green-300 via-blue-200 to-purple-300">
+        <div className="flex items-center justify-center h-screen bg-gradient-to-r from-blue-200 to-purple-300">
             <div className="bg-white w-[400px] p-8 rounded-lg shadow-lg">
-                <h3 className="text-3xl font-bold text-center text-green-600 mb-4">
-                    Smart Garden
+                <h3 className="text-3xl font-bold text-center text-purple-600 mb-4">
+                    Đăng ký tài khoản
                 </h3>
                 <p className="text-center text-gray-500 mb-6">
-                    Đăng nhập để quản lý vườn thông minh của bạn
+                    Tạo tài khoản mới để quản lý vườn thông minh của bạn
                 </p>
-                <form className="space-y-5" onSubmit={handleLogin}>
+                <form className="space-y-5" onSubmit={handleRegister}>
                     <InputForm
-                        label={'Tên đăng nhập'}
+                        label={'Email'}
                         value={email}
                         setValue={setEmail}
                         placeholder="Nhập email của bạn"
@@ -46,12 +52,19 @@ const Login = () => {
                         setValue={setPassword}
                         placeholder="Nhập mật khẩu"
                     />
+                    <InputForm
+                        label={'Xác nhận mật khẩu'}
+                        type="password"
+                        value={confirmPassword}
+                        setValue={setConfirmPassword}
+                        placeholder="Xác nhận mật khẩu"
+                    />
                     {error && (
                         <p className="text-red-500 text-sm mt-1">{error}</p>
                     )}
                     <Button
-                        text="Đăng nhập"
-                        bgColor="bg-green-500 hover:bg-green-600"
+                        text="Đăng ký"
+                        bgColor="bg-purple-500 hover:bg-purple-600"
                         textColor="text-white"
                         fullWidth
                         type="submit"
@@ -59,20 +72,12 @@ const Login = () => {
                 </form>
                 <div className="flex justify-between items-center mt-6 text-sm">
                     <p>
-                        Chưa có tài khoản?{' '}
+                        Đã có tài khoản?{' '}
                         <span
                             className="text-blue-500 cursor-pointer hover:underline"
-                            onClick={() => navigate(path.REGISTER)}
+                            onClick={() => navigate(path.LOGIN)}
                         >
-                            Đăng ký ngay
-                        </span>
-                    </p>
-                    <p>
-                        <span
-                            className="text-blue-500 cursor-pointer hover:underline"
-                            onClick={() => alert('Hãy liên hệ Admin!')}
-                        >
-                            Quên mật khẩu?
+                            Đăng nhập ngay
                         </span>
                     </p>
                 </div>
@@ -81,4 +86,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default Register;

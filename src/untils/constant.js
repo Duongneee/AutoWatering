@@ -4,6 +4,7 @@ export const path = {
     GARDENLIST: '/gardens',
     GARDENID: '/gardens/:gardenId',
     HOME: '/HOME',
-    GARDEN: '/add-garden'
+    GARDEN: '/add-garden',
+    REGISTER: '/register'
 
 }
