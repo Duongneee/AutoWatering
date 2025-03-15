@@ -5,6 +5,7 @@ export const path = {
     GARDENID: '/gardens/:gardenId',
     HOME: '/HOME',
     GARDEN: '/add-garden',
-    REGISTER: '/register'
-
+    REGISTER: '/register',
+    CHATBOT: '/chatbot',
+    WEATHER: '/weather'
 }

@@ -36,66 +36,69 @@ const GardenList = () => {
         return () => unsubscribe();
     }, []);
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        navigate('/');
-    };
-
     return (
-        <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-teal-50 to-blue-100">
-            {/* Nút Đăng xuất */}
-            <div className="w-full flex justify-end px-8 py-4">
-                <button
-                    onClick={handleLogout}
-                    className="bg-red-500 text-white px-5 py-2 rounded-md hover:bg-red-600 transition-all duration-200 font-medium shadow-lg"
-                >
-                    Đăng xuất
-                </button>
+        <div className="min-h-screen bg-gradient-to-br from-teal-100 via-green-50 to-blue-200 px-6 py-12 flex flex-col items-center">
+            {/* Header */}
+            <div className="w-full max-w-7xl flex justify-between items-center mb-16">
+                <h1 className="text-5xl font-extrabold bg-gradient-to-r from-teal-600 to-blue-700 bg-clip-text text-transparent text-center mx-auto animate-fadeIn">
+                    Danh Sách Khu Vườn
+                </h1>
             </div>
 
-            {/* Tiêu đề */}
-            <h1 className="text-4xl font-extrabold text-blue-800 mt-6 mb-10 text-center">
-                Danh Sách Khu Vườn
-            </h1>
-
-            {/* Danh sách khu vườn */}
-            <div className="grid w-full max-w-6xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-6">
-                {gardens.map(garden => (
-                    <div
-                        key={garden.id}
-                        className="border border-gray-300 rounded-lg shadow-lg bg-white hover:shadow-2xl transform transition-all duration-300 hover:scale-105"
-                    >
-                        <img
-                            src={a}
-                            alt="Garden"
-                            className="w-full h-48 object-cover rounded-t-lg"
-                        />
-                        <div className="p-5">
-                            <h2 className="text-xl font-semibold text-gray-700 mb-2">{garden.name}</h2>
-                            <p className="text-gray-600 text-base">
-                                Độ ẩm hiện tại:{' '}
-                                <span className="text-green-600 font-bold">
-                                    {garden.doAmDat.current}%
-                                </span>
-                            </p>
-                            <Link to={`/gardens/${garden.id}`}>
-                                <button className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200">
-                                    Xem chi tiết
-                                </button>
-                            </Link>
+            {/* Garden Grid - Centered */}
+            <div className="w-full max-w-7xl flex justify-center">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+                    {gardens.map(garden => (
+                        <div
+                            key={garden.id}
+                            className="relative bg-white rounded-2xl shadow-xl overflow-hidden transform transition-all duration-500 hover:scale-105 hover:shadow-3xl group border border-teal-100"
+                        >
+                            <div className="relative">
+                                <img
+                                    src={a}
+                                    alt={garden.name}
+                                    className="w-full h-60 object-cover transition-transform duration-700 group-hover:scale-110"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            </div>
+                            <div className="p-6">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-4 truncate group-hover:text-teal-600 transition-colors duration-300">
+                                    {garden.name}
+                                </h2>
+                                <p className="text-gray-700 text-sm flex items-center gap-2 mb-4">
+                                    <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Độ ẩm hiện tại: <span className="text-teal-700 font-semibold">{garden.doAmDat.current}%</span>
+                                </p>
+                                <Link to={`/gardens/${garden.id}`}>
+                                    <button className="mt-4 w-full bg-gradient-to-r from-teal-500 to-blue-600 text-white py-3 rounded-lg shadow-lg hover:from-teal-600 hover:to-blue-700 transition-all duration-300 flex items-center justify-center gap-2 transform hover:-translate-y-1">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                                        </svg>
+                                        Xem chi tiết
+                                    </button>
+                                </Link>
+                            </div>
+                            {/* Decorative Badge */}
+                            <div className="absolute top-4 right-4 bg-gradient-to-r from-green-400 to-green-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg transform rotate-12 group-hover:scale-110 transition-all duration-300">
+                                Active
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
 
-            {/* Nút thêm khu vườn */}
-            <div className="mt-10">
-                <Link to={`/add-garden`}>
-                    <button className="px-6 py-3 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 hover:shadow-lg transition-all duration-200">
-                        Thêm khu vườn
-                    </button>
-                </Link>
-            </div>
+            {/* Animation Keyframes */}
+            <style jsx>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fadeIn {
+                    animation: fadeIn 0.8s ease-out;
+                }
+            `}</style>
         </div>
     );
 };

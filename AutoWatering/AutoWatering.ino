@@ -27,7 +27,7 @@ const String maxPath = "gardens/gardenId1/doAmDat/max";
 const String minPath = "gardens/gardenId1/doAmDat/min";
 
 // Pin định nghĩa
-const int pumpPin = 4;
+const int pumpPin = 14;
 const int moistureSensorPin = 33;
 
 bool signUp = false;

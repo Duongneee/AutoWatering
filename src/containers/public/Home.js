@@ -1,14 +1,20 @@
 // Home.js
 import React from 'react';
 import GardenList from './GardenList'; 
+import Sidebar from './sidebar'
+import { Navigate, Outlet } from 'react-router-dom'
 
 const Home = () => {
     return (
-        <div className='flex flex-col items-center p-6'>
-            <h1 className='text-3xl font-bold mb-4'>Chào Mừng Đến Với Ứng Dụng Quản Lý Khu Vườn</h1>
-            <GardenList /> 
-        </div>
-    );
+        
+                <div className='flex w-full h-screen flex-auto'>
+                    <Sidebar />
+                    <div className='flex-auto bg-white shadow-md h-full p-4 overflow-y-scroll'>
+                        <Outlet />
+                    </div>
+                </div>
+           
+        )
 };
 
 export default Home;
