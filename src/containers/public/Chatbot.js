@@ -101,7 +101,7 @@ const Chatbot = () => {
 
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
-    myHeaders.append("Api-Key", "4p5fHCp32hyXvXfoX5roYlnHafbFSnwz2GS7upGXQskBmfvZur");
+    myHeaders.append("Api-Key", process.env.REACT_APP_PLANT_ID_API_KEY);
 
     const requestOptions = {
       method: "GET",
@@ -140,7 +140,7 @@ const Chatbot = () => {
       const response = await axios.post("https://plant.id/api/v3/identification", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          "Api-Key": "4p5fHCp32hyXvXfoX5roYlnHafbFSnwz2GS7upGXQskBmfvZur",
+          "Api-Key": process.env.REACT_APP_PLANT_ID_API_KEY,
         },
       });
 
@@ -185,9 +185,8 @@ const Chatbot = () => {
     } catch (error) {
       let errorMessage = "Lỗi không xác định";
       if (error.response) {
-        errorMessage = `Lỗi từ server: ${error.response.status} - ${
-          error.response.data.message || JSON.stringify(error.response.data)
-        }`;
+        errorMessage = `Lỗi từ server: ${error.response.status} - ${error.response.data.message || JSON.stringify(error.response.data)
+          }`;
       } else if (error.request) {
         errorMessage = "Không thể kết nối đến server. Vui lòng kiểm tra mạng!";
       } else {
@@ -214,9 +213,8 @@ const Chatbot = () => {
         {messages.map((msg, index) => (
           <div key={index} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
             <div
-              className={`px-5 py-3 rounded-2xl max-w-xs shadow-md ${
-                msg.sender === "user" ? "bg-green-600 text-white" : "bg-white text-gray-800"
-              }`}
+              className={`px-5 py-3 rounded-2xl max-w-xs shadow-md ${msg.sender === "user" ? "bg-green-600 text-white" : "bg-white text-gray-800"
+                }`}
             >
               {msg.image ? (
                 <img src={URL.createObjectURL(msg.image)} alt="Uploaded" className="w-40 h-40 rounded-lg" />
