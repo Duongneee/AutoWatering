@@ -7,5 +7,6 @@ export const path = {
     GARDEN: '/add-garden',
     REGISTER: '/register',
     CHATBOT: '/chatbot',
-    WEATHER: '/weather'
+    WEATHER: '/weather',
+    MAP: '/map'
 }

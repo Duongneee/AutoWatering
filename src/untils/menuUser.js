@@ -11,18 +11,24 @@ const menuUser = [
     },
     {
         id: 2,
+        text: 'Map',
+        path: '/map',
+        icon: <TiWeatherPartlySunny />
+    },
+    {
+        id: 3,
         text: 'Thêm khu vườn',
         path: '/add-garden',
         icon: <ImPencil2 />
     },
     {
-        id: 3,
+        id: 4,
         text: 'Chatbot',
         path: '/chatbot',
         icon: <RiRobot3Line />
     },
     {
-        id: 4,
+        id: 5,
         text: 'Dự báo thời tiết',
         path: '/weather',
         icon: <TiWeatherPartlySunny />

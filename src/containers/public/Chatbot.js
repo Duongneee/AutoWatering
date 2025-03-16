@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaPaperPlane, FaLeaf, FaImage } from "react-icons/fa";
+import { FaLeaf, FaImage } from "react-icons/fa";
 import axios from "axios";
 import { MdSunny, MdGrass, MdWaterDrop } from "react-icons/md";
 
@@ -10,84 +10,112 @@ const PlantSuggestionCard = ({
   bestLightCondition,
   bestSoilType,
   bestWatering,
+  isHealthy,
+  diseaseSuggestions,
+  isDiagnosis = false,
 }) => {
   const renderInfoRow = (icon, label, content) => (
-    <div className="flex items-start mb-2">
+    <div className="flex items-start mb-4">
       {icon}
-      <div className="ml-2">
-        <span className="font-bold text-sm text-black">{label}: </span>
-        <span className="text-sm text-gray-600">{content}</span>
+      <div className="ml-3">
+        <span className="font-semibold text-sm text-gray-800">{label}: </span>
+        <span className="text-l text-gray-600">{content}</span>
       </div>
     </div>
   );
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 m-2">
-      <h2 className="text-lg font-bold text-gray-800 px-2 py-2">{name}</h2>
+    <div className="bg-white rounded-2xl shadow-xl p-6 m-4 max-w-md transform hover:scale-105 transition-all duration-300 border border-gray-100">
+      <h2 className="text-xl font-bold text-gray-800 text-center mb-4">{name}</h2>
       <img
         src={similarImageUrl}
         alt={name}
-        className="w-full h-48 object-cover rounded-t-xl"
+        className="w-full h-64 object-cover rounded-xl shadow-md"
       />
-      <p className="text-sm text-gray-500 px-2 mt-2 line-clamp-3">{description}</p>
-      <hr className="my-2" />
-      <div className="px-2">
-        {renderInfoRow(
-          <MdSunny className="text-green-600 text-lg" />,
-          "Best Light Condition",
-          bestLightCondition
-        )}
-        {renderInfoRow(
-          <MdGrass className="text-green-600 text-lg" />,
-          "Best Soil Type",
-          bestSoilType
-        )}
-        {renderInfoRow(
-          <MdWaterDrop className="text-green-600 text-lg" />,
-          "Best Watering",
-          bestWatering
-        )}
-      </div>
+      {!isDiagnosis ? (
+        <>
+          <p className="text-sm text-gray-600 mt-4 line-clamp-3">{description}</p>
+          <hr className="my-5 border-gray-200" />
+          <div>
+            {renderInfoRow(
+              <MdSunny className="text-yellow-500 text-xl" />,
+              "Ánh sáng tốt nhất",
+              bestLightCondition || "Không có thông tin."
+            )}
+            {renderInfoRow(
+              <MdGrass className="text-green-500 text-xl" />,
+              "Loại đất tốt nhất",
+              bestSoilType || "Không có thông tin."
+            )}
+            {renderInfoRow(
+              <MdWaterDrop className="text-blue-500 text-xl" />,
+              "Tưới nước tốt nhất",
+              bestWatering || "Không có thông tin."
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="mt-4">
+          {isHealthy !== undefined && (
+            <div>
+              <span className="font-semibold text-sm text-gray-800">Sức khỏe: </span>
+              <span className={`text-sm ${isHealthy ? "text-green-600" : "text-red-600"}`}>
+                {isHealthy ? "Khỏe mạnh" : "Không khỏe"}
+              </span>
+              {!isHealthy && diseaseSuggestions?.length > 0 && (
+                <div className="mt-3">
+                  <span className="font-semibold text-sm text-gray-800">Thông tin bệnh:</span>
+                  <ul className="mt-2 text-sm text-gray-600 space-y-4">
+                    {diseaseSuggestions.map((disease, idx) => (
+                      <li key={idx}>
+                        <strong>{disease.name}</strong> ({(disease.probability * 100).toFixed(2)}%)
+                        {disease.description ? (
+                          <p className="mt-1">Mô tả: {disease.description}</p>
+                        ) : (
+                          <p className="mt-1 text-gray-400">Không có mô tả chi tiết.</p>
+                        )}
+                        {disease.treatment?.prevention?.length > 0 ? (
+                          <p className="mt-1">
+                            Phòng ngừa: {disease.treatment.prevention.join(", ")}
+                          </p>
+                        ) : (
+                          <p className="mt-1 text-gray-400">Không có thông tin phòng ngừa.</p>
+                        )}
+                        {disease.symptomImage && (
+                          <img
+                            src={`data:image/png;base64,${disease.symptomImage}`}
+                            alt="Triệu chứng"
+                            className="w-32 h-32 mt-2 rounded-lg shadow-md"
+                          />
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([
-    { text: "🌱 Xin chào! Hãy gửi ảnh cây trồng để tôi tư vấn nhé!", sender: "bot" },
+    { text: "Xin chào! Tải ảnh cây để nhận diện hoặc chẩn đoán nhé!", sender: "bot" },
   ]);
-  const [input, setInput] = useState("");
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  const handleSendMessage = async () => {
-    if (!input.trim() && !image) return;
-
-    const userMessage = image
-      ? { text: "📷 [Hình ảnh]", sender: "user", image }
-      : { text: input, sender: "user" };
-    setMessages([...messages, userMessage]);
-    setInput("");
-    setImage(null);
-
-    if (image) {
-      await handlePlantIdentification(image);
-    } else {
-      setTimeout(() => {
-        const botReply = {
-          text: "🤖 Tôi chỉ có thể nhận diện cây qua ảnh! Vui lòng tải ảnh lên.",
-          sender: "bot",
-        };
-        setMessages((prev) => [...prev, botReply]);
-      }, 1000);
-    }
-  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith("image/")) {
-      console.log("File info:", file.name, file.size, file.type);
       setImage(file);
+      setMessages((prev) => [
+        ...prev,
+        { text: "[Hình ảnh]", sender: "user", image: file },
+      ]);
     } else {
       setMessages((prev) => [
         ...prev,
@@ -96,45 +124,25 @@ const Chatbot = () => {
     }
   };
 
-  const fetchPlantDetails = async (plantId) => {
-    console.log("Fetching details for Plant ID:", plantId);
-
-    const myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
-    myHeaders.append("Api-Key", process.env.REACT_APP_PLANT_ID_API_KEY);
-
-    const requestOptions = {
-      method: "GET",
-      headers: myHeaders,
-      redirect: "follow",
-    };
-
-    try {
-      const response = await fetch(
-        `https://plant.id/api/v3/kb/plants/${plantId}?details=common_names,url,description,taxonomy,rank,gbif_id,inaturalist_id,image,synonyms,edible_parts,watering,propagation_methods&language=en`,
-        requestOptions
-      );
-      console.log("Fetch Plant Details Status:", response.status);
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Error response from /kb/plants:", errorText);
-        throw new Error(`HTTP error! Status: ${response.status} - ${errorText}`);
-      }
-      const result = await response.json();
-      console.log("Plant Details Response:", result);
-      return result;
-    } catch (error) {
-      console.error("Lỗi khi lấy thông tin chi tiết cây:", error.message);
-      return null;
+  const handlePlantIdentification = async (file, isDiagnosis = false) => {
+    if (!file) {
+      setMessages((prev) => [
+        ...prev,
+        { text: "Vui lòng tải ảnh trước khi thực hiện!", sender: "bot" },
+      ]);
+      return;
     }
-  };
 
-  const handlePlantIdentification = async (file) => {
     setLoading(true);
 
     const formData = new FormData();
     formData.append("images", file);
     formData.append("classification_level", "species");
+    formData.append("similar_images", "true");
+    if (isDiagnosis) {
+      formData.append("health", "all");
+      formData.append("symptoms", "true");
+    }
 
     try {
       const response = await axios.post("https://plant.id/api/v3/identification", formData, {
@@ -144,82 +152,114 @@ const Chatbot = () => {
         },
       });
 
-      console.log("API Response from /identification:", response.data);
+      const { access_token, result } = response.data;
+      const plant = result.classification.suggestions[0];
+      const isPlant = result.is_plant.binary;
+      const health = result.is_healthy;
 
-      const suggestions = response.data.result?.classification?.suggestions || response.data.suggestions;
-      const plant = suggestions?.[0];
+      if (!isPlant) {
+        setMessages((prev) => [
+          ...prev,
+          { text: "Hình ảnh không chứa cây trồng. Hãy thử lại!", sender: "bot" },
+        ]);
+        setLoading(false);
+        return;
+      }
 
       if (plant) {
         const plantName = plant.name;
         const probability = (plant.probability * 100).toFixed(2);
-        const imageUrlFromIdentification = response.data.input.images[0]; // Lấy URL ảnh từ /identification
 
-        setMessages((prev) => [
-          ...prev,
-          { text: `🌿 Cây nhận diện: ${plantName} (Độ chính xác: ${probability}%)`, sender: "bot" },
-        ]);
+        const detailsResponse = await axios.get(
+          `https://plant.id/api/v3/identification/${access_token}?details=common_names,description,best_light_condition,best_soil_type,best_watering,treatment&language=vi`,
+          {
+            headers: { "Api-Key": process.env.REACT_APP_PLANT_ID_API_KEY },
+          }
+        );
 
-        const plantDetails = await fetchPlantDetails(plant.id);
-        const suggestion = {
-          name: plantName,
-          similarImageUrl: plantDetails?.image?.value || imageUrlFromIdentification || "https://via.placeholder.com/300x200",
-          description: plantDetails?.description?.value || "Không có thông tin mô tả từ API chi tiết.",
-          bestLightCondition: plantDetails?.light?.value || "Không có thông tin ánh sáng.",
-          bestSoilType: plantDetails?.soil?.value || "Không có thông tin đất.",
-          bestWatering: plantDetails?.watering?.value || "Không có thông tin tưới nước.",
-        };
+        const details = detailsResponse.data.result.classification.suggestions[0].details;
+        let suggestion = {};
+
+        if (!isDiagnosis) {
+          suggestion = {
+            name: details.common_names?.[0] || plantName,
+            similarImageUrl: plant.similar_images?.[0]?.url || "https://via.placeholder.com/300x200",
+            description: details.description?.value || "Không có mô tả.",
+            bestLightCondition: details.best_light_condition || "Không có thông tin.",
+            bestSoilType: details.best_soil_type || "Không có thông tin.",
+            bestWatering: details.best_watering || "Không có thông tin.",
+            isDiagnosis: false,
+          };
+        } else {
+          suggestion = {
+            name: details.common_names?.[0] || plantName,
+            similarImageUrl: plant.similar_images?.[0]?.url || "https://via.placeholder.com/300x200",
+            isHealthy: health?.binary,
+            diseaseSuggestions:
+              result.disease?.suggestions.map((disease, idx) => ({
+                name: disease.name,
+                probability: disease.probability,
+                description: disease.details?.description?.value || "Không có mô tả chi tiết.",
+                treatment: disease.details?.treatment || {},
+                symptomImage: result.symptoms?.[idx]?.heatmap || null,
+              })) || [],
+            isDiagnosis: true,
+          };
+        }
 
         setMessages((prev) => [
           ...prev,
           {
-            text: <PlantSuggestionCard {...suggestion} />,
+            text: `${isDiagnosis ? "Chẩn đoán" : "Nhận diện"}: ${plantName} (Độ chính xác: ${probability}%)`,
             sender: "bot",
           },
+          { text: <PlantSuggestionCard {...suggestion} />, sender: "bot" },
         ]);
       } else {
         setMessages((prev) => [
           ...prev,
-          { text: "🤖 Không nhận diện được cây này. Hãy thử lại!", sender: "bot" },
+          { text: "Không nhận diện được cây này. Hãy thử lại!", sender: "bot" },
         ]);
       }
     } catch (error) {
-      let errorMessage = "Lỗi không xác định";
-      if (error.response) {
-        errorMessage = `Lỗi từ server: ${error.response.status} - ${error.response.data.message || JSON.stringify(error.response.data)
-          }`;
-      } else if (error.request) {
-        errorMessage = "Không thể kết nối đến server. Vui lòng kiểm tra mạng!";
-      } else {
-        errorMessage = error.message;
-      }
-
-      console.error("Lỗi nhận diện cây:", error.response?.data || error);
+      const errorMessage = error.response
+        ? `Lỗi từ server: ${error.response.status} - ${error.response.data.message || "Lỗi không xác định"}`
+        : "Không thể kết nối đến server. Vui lòng kiểm tra mạng!";
       setMessages((prev) => [
         ...prev,
-        { text: `⚠️ Lỗi khi nhận diện: ${errorMessage}. Vui lòng thử lại!`, sender: "bot" },
+        { text: `⚠️ Lỗi: ${errorMessage}. Vui lòng thử lại!`, sender: "bot" },
       ]);
+      console.error("Identification error:", error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-screen bg-green-100">
-      <div className="bg-green-600 text-white py-4 px-5 text-2xl font-bold flex items-center gap-3 shadow-md">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-green-50 to-gray-50">
+      <div className="bg-green-700 text-white py-6 px-6 text-2xl font-bold flex items-center justify-center gap-3 shadow-lg">
         <FaLeaf className="text-3xl" />
-        Chatbot Healthcare Cây Trồng
+        Plant ChatBot
       </div>
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.map((msg, index) => (
-          <div key={index} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
+          <div
+            key={index}
+            className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+          >
             <div
-              className={`px-5 py-3 rounded-2xl max-w-xs shadow-md ${msg.sender === "user" ? "bg-green-600 text-white" : "bg-white text-gray-800"
-                }`}
+              className={`px-5 py-3 rounded-2xl max-w-md shadow-md ${
+                msg.sender === "user" ? "bg-green-500 text-white" : "bg-white text-gray-800"
+              }`}
             >
               {msg.image ? (
-                <img src={URL.createObjectURL(msg.image)} alt="Uploaded" className="w-40 h-40 rounded-lg" />
+                <img
+                  src={URL.createObjectURL(msg.image)}
+                  alt="Uploaded"
+                  className="w-48 h-48 rounded-lg shadow-md"
+                />
               ) : typeof msg.text === "string" ? (
-                <pre>{msg.text}</pre>
+                <pre className="whitespace-pre-wrap text-sm">{msg.text}</pre>
               ) : (
                 msg.text
               )}
@@ -228,11 +268,11 @@ const Chatbot = () => {
         ))}
         {loading && (
           <div className="flex justify-center">
-            <span className="text-gray-500">⏳ Đang nhận diện...</span>
+            <span className="text-gray-600 text-base animate-pulse">⏳ Đang xử lý...</span>
           </div>
         )}
       </div>
-      <div className="flex p-5 bg-white border-t">
+      <div className="flex justify-center gap-6 p-6 bg-white shadow-inner border-t border-gray-100">
         <input
           type="file"
           accept="image/*"
@@ -242,24 +282,23 @@ const Chatbot = () => {
         />
         <label
           htmlFor="upload"
-          className="cursor-pointer bg-gray-200 p-3 rounded-xl shadow-md hover:bg-gray-300 transition"
+          className="cursor-pointer bg-gray-100 p-4 rounded-full shadow-md hover:bg-gray-200 transition flex items-center justify-center"
         >
-          <FaImage className="text-xl text-gray-700" />
+          <FaImage className="text-2xl text-gray-600" />
         </label>
-        <input
-          type="text"
-          className="flex-1 border rounded-xl px-4 py-3 text-lg outline-none shadow-sm mx-3"
-          placeholder="Nhập tin nhắn hoặc gửi ảnh..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-        />
         <button
-          className="bg-green-600 text-white px-5 py-3 rounded-xl flex items-center shadow-md hover:bg-green-700 transition"
-          onClick={handleSendMessage}
+          className="bg-green-600 text-white px-6 py-3 rounded-xl shadow-md hover:bg-green-700 transition disabled:bg-gray-400 text-sm font-semibold"
+          onClick={() => handlePlantIdentification(image, false)}
           disabled={loading}
         >
-          {loading ? "⏳" : <FaPaperPlane className="text-xl" />}
+          Nhận diện cây
+        </button>
+        <button
+          className="bg-red-600 text-white px-6 py-3 rounded-xl shadow-md hover:bg-red-700 transition disabled:bg-gray-400 text-sm font-semibold"
+          onClick={() => handlePlantIdentification(image, true)}
+          disabled={loading}
+        >
+          Chẩn đoán bệnh cây
         </button>
       </div>
     </div>

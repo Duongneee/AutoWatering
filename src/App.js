@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { Garden, Home, Login, GardenId, GardenList, Register, Chatbot, Weather } from './containers/public';
+import { Garden, Home, Login, GardenId, GardenList, Register, Chatbot, Weather, MapScreen } from './containers/public';
 import { path } from './untils/constant';
 // Trang điều khiển
 
@@ -19,6 +19,7 @@ function App() {
           <Route path={path.GARDEN} element={<Garden />} />
           <Route path={path.CHATBOT} element={<Chatbot />} />
           <Route path={path.WEATHER} element={<Weather />} />
+          <Route path={path.MAP} element={<MapScreen />} />
         </Route>
       </Routes>
     </div>
