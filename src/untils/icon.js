@@ -16,12 +16,14 @@ import { GiMoneyStack } from "react-icons/gi";
 import {SiZalo} from 'react-icons/si'
 import { RiRobot3Line } from "react-icons/ri";
 import { TiWeatherPartlySunny } from "react-icons/ti";
+import { GrMap } from "react-icons/gr";
 
 
 
 
 const icons = {
     TiWeatherPartlySunny ,
+    GrMap,
     RiRobot3Line,
     FaRegNewspaper,
     IoLogIn,

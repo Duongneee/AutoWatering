@@ -1,6 +1,6 @@
 import icons from './icon'
 
-const { ImPencil2, MdOutlineLibraryBooks, LiaMoneyBillWaveSolid, BsBookmarkStarFill, RiRobot3Line, TiWeatherPartlySunny  } = icons
+const { ImPencil2, MdOutlineLibraryBooks, LiaMoneyBillWaveSolid, BsBookmarkStarFill, RiRobot3Line, TiWeatherPartlySunny, GrMap } = icons
 
 const menuUser = [
     {
@@ -13,7 +13,7 @@ const menuUser = [
         id: 2,
         text: 'Map',
         path: '/map',
-        icon: <TiWeatherPartlySunny />
+        icon: <GrMap />
     },
     {
         id: 3,
