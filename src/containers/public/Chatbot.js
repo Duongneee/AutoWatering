@@ -19,7 +19,7 @@ const PlantSuggestionCard = ({
       {icon}
       <div className="ml-3">
         <span className="font-semibold text-sm text-gray-800">{label}: </span>
-        <span className="text-l text-gray-600">{content}</span>
+        <span className="text-sm text-gray-600">{content}</span>
       </div>
     </div>
   );
@@ -62,36 +62,29 @@ const PlantSuggestionCard = ({
               <span className={`text-sm ${isHealthy ? "text-green-600" : "text-red-600"}`}>
                 {isHealthy ? "Khỏe mạnh" : "Không khỏe"}
               </span>
-              {!isHealthy && diseaseSuggestions?.length > 0 && (
+              {!isHealthy && diseaseSuggestions?.length > 0 ? (
                 <div className="mt-3">
                   <span className="font-semibold text-sm text-gray-800">Thông tin bệnh:</span>
                   <ul className="mt-2 text-sm text-gray-600 space-y-4">
                     {diseaseSuggestions.map((disease, idx) => (
                       <li key={idx}>
                         <strong>{disease.name}</strong> ({(disease.probability * 100).toFixed(2)}%)
-                        {disease.description ? (
-                          <p className="mt-1">Mô tả: {disease.description}</p>
-                        ) : (
-                          <p className="mt-1 text-gray-400">Không có mô tả chi tiết.</p>
+                        {disease.description && <p className="mt-1">Mô tả: {disease.description}</p>}
+                        {disease.treatment?.chemical?.length > 0 && (
+                          <p className="mt-1">Điều trị hóa học: {disease.treatment.chemical.join(", ")}</p>
                         )}
-                        {disease.treatment?.prevention?.length > 0 ? (
-                          <p className="mt-1">
-                            Phòng ngừa: {disease.treatment.prevention.join(", ")}
-                          </p>
-                        ) : (
-                          <p className="mt-1 text-gray-400">Không có thông tin phòng ngừa.</p>
+                        {disease.treatment?.biological?.length > 0 && (
+                          <p className="mt-1">Điều trị sinh học: {disease.treatment.biological.join(", ")}</p>
                         )}
-                        {disease.symptomImage && (
-                          <img
-                            src={`data:image/png;base64,${disease.symptomImage}`}
-                            alt="Triệu chứng"
-                            className="w-32 h-32 mt-2 rounded-lg shadow-md"
-                          />
+                        {disease.treatment?.prevention?.length > 0 && (
+                          <p className="mt-1">Phòng ngừa: {disease.treatment.prevention.join(", ")}</p>
                         )}
                       </li>
                     ))}
                   </ul>
                 </div>
+              ) : !isHealthy && (
+                <p className="mt-2 text-sm text-gray-600">Không tìm thấy thông tin bệnh cụ thể.</p>
               )}
             </div>
           )}
@@ -124,7 +117,7 @@ const Chatbot = () => {
     }
   };
 
-  const handlePlantIdentification = async (file, isDiagnosis = false) => {
+  const handlePlantIdentification = async (file, isDiagnosis) => {
     if (!file) {
       setMessages((prev) => [
         ...prev,
@@ -137,25 +130,24 @@ const Chatbot = () => {
 
     const formData = new FormData();
     formData.append("images", file);
-    formData.append("classification_level", "species");
     formData.append("similar_images", "true");
-    if (isDiagnosis) {
-      formData.append("health", "all");
-      formData.append("symptoms", "true");
-    }
 
     try {
-      const response = await axios.post("https://plant.id/api/v3/identification", formData, {
+      const endpoint = isDiagnosis
+        ? "https://plant.id/api/v3/health_assessment?language=vi&details=local_name,description,url,treatment,classification,common_names,cause"
+        : "https://plant.id/api/v3/identification?classification_level=species&language=vi&details=common_names,description,best_light_condition,best_soil_type,best_watering";
+
+      const response = await axios.post(endpoint, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           "Api-Key": process.env.REACT_APP_PLANT_ID_API_KEY,
         },
       });
+      
+      console.log("API Response:", response.data);
 
-      const { access_token, result } = response.data;
-      const plant = result.classification.suggestions[0];
-      const isPlant = result.is_plant.binary;
-      const health = result.is_healthy;
+      const { result } = response.data;
+      const isPlant = result.is_plant?.binary ?? true;
 
       if (!isPlant) {
         setMessages((prev) => [
@@ -166,59 +158,61 @@ const Chatbot = () => {
         return;
       }
 
-      if (plant) {
+      let suggestion = {};
+      if (!isDiagnosis) {
+        const plant = result.classification.suggestions[0];
+        const details = plant.details;
         const plantName = plant.name;
         const probability = (plant.probability * 100).toFixed(2);
 
-        const detailsResponse = await axios.get(
-          `https://plant.id/api/v3/identification/${access_token}?details=common_names,description,best_light_condition,best_soil_type,best_watering,treatment&language=vi`,
-          {
-            headers: { "Api-Key": process.env.REACT_APP_PLANT_ID_API_KEY },
-          }
-        );
-
-        const details = detailsResponse.data.result.classification.suggestions[0].details;
-        let suggestion = {};
-
-        if (!isDiagnosis) {
-          suggestion = {
-            name: details.common_names?.[0] || plantName,
-            similarImageUrl: plant.similar_images?.[0]?.url || "https://via.placeholder.com/300x200",
-            description: details.description?.value || "Không có mô tả.",
-            bestLightCondition: details.best_light_condition || "Không có thông tin.",
-            bestSoilType: details.best_soil_type || "Không có thông tin.",
-            bestWatering: details.best_watering || "Không có thông tin.",
-            isDiagnosis: false,
-          };
-        } else {
-          suggestion = {
-            name: details.common_names?.[0] || plantName,
-            similarImageUrl: plant.similar_images?.[0]?.url || "https://via.placeholder.com/300x200",
-            isHealthy: health?.binary,
-            diseaseSuggestions:
-              result.disease?.suggestions.map((disease, idx) => ({
-                name: disease.name,
-                probability: disease.probability,
-                description: disease.details?.description?.value || "Không có mô tả chi tiết.",
-                treatment: disease.details?.treatment || {},
-                symptomImage: result.symptoms?.[idx]?.heatmap || null,
-              })) || [],
-            isDiagnosis: true,
-          };
-        }
+        suggestion = {
+          name: details?.common_names?.[0] || plantName,
+          similarImageUrl: plant.similar_images?.[0]?.url || "https://via.placeholder.com/300x200",
+          description: details?.description?.value || "Không có mô tả.",
+          bestLightCondition: details?.best_light_condition || "Không có thông tin.",
+          bestSoilType: details?.best_soil_type || "Không có thông tin.",
+          bestWatering: details?.best_watering || "Không có thông tin.",
+          isDiagnosis: false,
+        };
 
         setMessages((prev) => [
           ...prev,
           {
-            text: `${isDiagnosis ? "Chẩn đoán" : "Nhận diện"}: ${plantName} (Độ chính xác: ${probability}%)`,
+            text: `Nhận diện: ${plantName} (Độ chính xác: ${probability}%)`,
             sender: "bot",
           },
           { text: <PlantSuggestionCard {...suggestion} />, sender: "bot" },
         ]);
       } else {
+        const isHealthy = result.is_healthy.binary;
+        const diseaseSuggestions = result.disease?.suggestions || [];
+        const plantName = diseaseSuggestions[0]?.details?.common_names?.[0] || "Cây không xác định";
+
+        suggestion = {
+          name: plantName,
+          similarImageUrl:
+            diseaseSuggestions[0]?.similar_images?.[0]?.url || "https://via.placeholder.com/300x200",
+          isHealthy: isHealthy,
+          diseaseSuggestions: diseaseSuggestions.map((disease) => ({
+            name: disease.details?.local_name || disease.name || "Không xác định",
+            probability: disease.probability || 0,
+            description: disease.details?.description?.value || "Không có mô tả chi tiết.",
+            treatment: {
+              chemical: disease.details?.treatment?.chemical || [],
+              biological: disease.details?.treatment?.biological || [],
+              prevention: disease.details?.treatment?.prevention || [],
+            },
+          })),
+          isDiagnosis: true,
+        };
+
         setMessages((prev) => [
           ...prev,
-          { text: "Không nhận diện được cây này. Hãy thử lại!", sender: "bot" },
+          {
+            text: `Chẩn đoán: ${plantName} (${isHealthy ? "Khỏe mạnh" : "Có dấu hiệu bệnh"})`,
+            sender: "bot",
+          },
+          { text: <PlantSuggestionCard {...suggestion} />, sender: "bot" },
         ]);
       }
     } catch (error) {

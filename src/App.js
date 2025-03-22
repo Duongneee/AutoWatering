@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Garden, Home, Login, GardenId, GardenList, Register, Chatbot, Weather, MapScreen } from './containers/public';
+import {AdminPage} from './containers/system'
 import { path } from './untils/constant';
 // Trang điều khiển
 
@@ -7,7 +8,7 @@ function App() {
   return (
     <div className="h-screen w-screen bg-primary">
       <Routes>
-        {/* Trang đăng nhập và đăng ký không nằm trong Home */}
+       
         <Route path={path.LOGIN} element={<Login />} />
         <Route path={path.REGISTER} element={<Register />} />
 
@@ -21,6 +22,9 @@ function App() {
           <Route path={path.WEATHER} element={<Weather />} />
           <Route path={path.MAP} element={<MapScreen />} />
         </Route>
+
+        <Route path={path.ADMIN} element={<AdminPage />} />
+
       </Routes>
     </div>
   );

@@ -1,25 +1,42 @@
-import React, { useState } from 'react';
-import { InputForm, Button } from '../../components';
-import { useNavigate } from 'react-router-dom';
-import { path } from '../../untils/constant';
-import { auth } from '../../firebaseConfig';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import React, { useState } from "react";
+import { InputForm, Button } from "../../components";
+import { useNavigate } from "react-router-dom";
+import { path } from "../../untils/constant";
+import { auth } from "../../firebaseConfig";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { ref, onValue } from "firebase/database"; // Import để lấy dữ liệu từ Realtime Database
+import { realtimedb } from "../../firebaseConfig";
 
 const Login = () => {
     const navigate = useNavigate();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
 
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            await signInWithEmailAndPassword(auth, email, password);
-            console.log('User logged in');
-            navigate(path.GARDENLIST);
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            console.log("User logged in:", user.uid);
+
+            const userRef = ref(realtimedb, `users/${user.uid}`);
+            onValue(
+                userRef,
+                (snapshot) => {
+                    const userData = snapshot.val();
+                    if (userData && userData.role === 1) {
+                        // Nếu role = 1, điều hướng đến trang Admin
+                        navigate(path.ADMIN); 
+                    } else {
+                        navigate(path.GARDENLIST);
+                    }
+                },
+                { onlyOnce: true } 
+            );
         } catch (error) {
             setError(error.message);
-            console.error('Login failed:', error.message);
+            console.error("Login failed:", error.message);
         }
     };
 
@@ -34,13 +51,13 @@ const Login = () => {
                 </p>
                 <form className="space-y-5" onSubmit={handleLogin}>
                     <InputForm
-                        label={'Tên đăng nhập'}
+                        label={"Tên đăng nhập"}
                         value={email}
                         setValue={setEmail}
                         placeholder="Nhập email của bạn"
                     />
                     <InputForm
-                        label={'Mật khẩu'}
+                        label={"Mật khẩu"}
                         type="password"
                         value={password}
                         setValue={setPassword}
@@ -60,7 +77,7 @@ const Login = () => {
                 </form>
                 <div className="flex justify-between items-center mt-6 text-sm">
                     <p>
-                        Chưa có tài khoản?{' '}
+                        Chưa có tài khoản?{" "}
                         <span
                             className="text-blue-500 cursor-pointer hover:underline"
                             onClick={() => navigate(path.REGISTER)}
@@ -71,7 +88,7 @@ const Login = () => {
                     <p>
                         <span
                             className="text-blue-500 cursor-pointer hover:underline"
-                            onClick={() => alert('Hãy liên hệ Admin!')}
+                            onClick={() => alert("Hãy liên hệ Admin!")}
                         >
                             Quên mật khẩu?
                         </span>

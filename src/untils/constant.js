@@ -8,5 +8,6 @@ export const path = {
     REGISTER: '/register',
     CHATBOT: '/chatbot',
     WEATHER: '/weather',
-    MAP: '/map'
+    MAP: '/map',
+    ADMIN:'/admin'
 }
