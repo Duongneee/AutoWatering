@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const AddGarden = () => {
     const [key, setKey] = useState('');
     const [userId, setUserId] = useState(null);
+    const [isLoading, setIsLoading] = useState(false); // Thêm trạng thái loading
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -23,9 +24,11 @@ const AddGarden = () => {
     }, [navigate]);
 
     const handleSave = async () => {
+        setIsLoading(true);
         try {
             if (!userId) {
                 alert('Không tìm thấy thông tin người dùng.');
+                setIsLoading(false);
                 return;
             }
 
@@ -35,35 +38,57 @@ const AddGarden = () => {
 
             if (!keySnapshot.exists()) {
                 alert('Key không hợp lệ hoặc không tồn tại.');
+                setIsLoading(false);
                 return;
             }
 
             const gardenId = keySnapshot.val();
+
+            // Kiểm tra xem gardenId đã được thêm bởi người dùng khác chưa
+            const usersRef = ref(db, 'users');
+            const usersSnapshot = await get(usersRef);
+            let isGardenTaken = false;
+
+            if (usersSnapshot.exists()) {
+                const users = usersSnapshot.val();
+                for (const uid in users) {
+                    const userGardens = users[uid].gardens;
+                    if (userGardens && userGardens[gardenId] === true) {
+                        isGardenTaken = true;
+                        break;
+                    }
+                }
+            }
+
+            if (isGardenTaken) {
+                alert('Khu vườn này đã được thêm bởi một người dùng khác.');
+                setIsLoading(false);
+                return;
+            }
+
+            // Kiểm tra khu vườn trong danh sách của người dùng hiện tại
             const userGardensRef = ref(db, `users/${userId}/gardens/${gardenId}`);
             const userGardensSnapshot = await get(userGardensRef);
 
             if (userGardensSnapshot.exists()) {
                 const gardenStatus = userGardensSnapshot.val();
-
                 if (gardenStatus === true) {
                     alert('Khu vườn này đã tồn tại trong danh sách của bạn.');
-                    return;
                 } else if (gardenStatus === false) {
                     await set(userGardensRef, true);
                     alert('Khu vườn đã được kích hoạt lại thành công!');
                 }
             } else {
-                const updates = {};
-                updates[`users/${userId}/gardens/${gardenId}`] = true;
-                await update(ref(db), updates);
-
+                await set(userGardensRef, true);
                 alert('Khu vườn đã được thêm thành công vào danh sách của bạn!');
             }
 
+            setIsLoading(false);
             navigate('/gardens');
         } catch (error) {
             console.error('Lỗi khi thêm khu vườn:', error);
             alert('Có lỗi xảy ra khi thêm khu vườn.');
+            setIsLoading(false);
         }
     };
 
@@ -80,12 +105,10 @@ const AddGarden = () => {
                     </svg>
                 </div>
 
-                {/* Title */}
                 <h1 className="text-3xl font-extrabold text-center mt-8 mb-6 bg-gradient-to-r from-green-500 to-teal-600 bg-clip-text text-transparent tracking-tight">
                     Thêm Khu Vườn Mới
                 </h1>
 
-                {/* Form Content */}
                 <div className="space-y-6">
                     <div className="relative group">
                         <label className="block text-sm font-medium text-gray-700 mb-1 transition-all duration-300 group-focus-within:text-teal-600">
@@ -109,16 +132,20 @@ const AddGarden = () => {
                         </svg>
                     </div>
 
-                    {/* Buttons */}
                     <div className="space-y-4">
                         <button
                             onClick={handleSave}
-                            className="w-full bg-gradient-to-r from-green-500 to-teal-500 text-white py-3 rounded-xl font-semibold text-lg shadow-md hover:from-green-600 hover:to-teal-600 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 active:scale-95"
+                            disabled={isLoading}
+                            className={`w-full bg-gradient-to-r from-green-500 to-teal-500 text-white py-3 rounded-xl font-semibold text-lg shadow-md hover:from-green-600 hover:to-teal-600 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            Lưu
+                            {isLoading ? 'Đang xử lý...' : (
+                                <>
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Lưu
+                                </>
+                            )}
                         </button>
 
                         <button
@@ -138,20 +165,3 @@ const AddGarden = () => {
 };
 
 export default AddGarden;
-
-// Add this CSS to your global stylesheet or a <style> tag in your app
-<style jsx global>{`
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    .animate-fade-in {
-        animation: fadeIn 0.5s ease-out forwards;
-    }
-`}</style>

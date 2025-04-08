@@ -9,5 +9,6 @@ export const path = {
     CHATBOT: '/chatbot',
     WEATHER: '/weather',
     MAP: '/map',
-    ADMIN:'/admin'
+    ADMIN:'/admin',
+    
 }

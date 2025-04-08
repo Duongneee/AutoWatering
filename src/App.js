@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Garden, Home, Login, GardenId, GardenList, Register, Chatbot, Weather, MapScreen } from './containers/public';
-import {AdminPage} from './containers/system'
+import { AdminPage,GardenDetail } from './containers/system'
 import { path } from './untils/constant';
 // Trang điều khiển
 
@@ -8,7 +8,7 @@ function App() {
   return (
     <div className="h-screen w-screen bg-primary">
       <Routes>
-       
+
         <Route path={path.LOGIN} element={<Login />} />
         <Route path={path.REGISTER} element={<Register />} />
 
@@ -24,6 +24,7 @@ function App() {
         </Route>
 
         <Route path={path.ADMIN} element={<AdminPage />} />
+        <Route path="/garden/:gardenId" element={<GardenDetail />} />
 
       </Routes>
     </div>
