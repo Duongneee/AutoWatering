@@ -5,30 +5,24 @@ const { ImPencil2, MdOutlineLibraryBooks, RiRobot3Line, TiWeatherPartlySunny, Gr
 const menuUser = [
     {
         id: 1,
-        text: 'Danh sách khu vườn',
-        path: '/gardens',
+        text: 'Danh sách thiết bị',
+        path: '/devices',
         icon: <MdOutlineLibraryBooks />
     },
     {
         id: 2,
-        text: 'Map',
-        path: '/map',
-        icon: <GrMap />
-    },
-    {
-        id: 3,
-        text: 'Thêm khu vườn',
-        path: '/add-garden',
+        text: 'Thêm thiết bị',
+        path: '/add-device',
         icon: <ImPencil2 />
     },
     {
-        id: 4,
+        id: 3,
         text: 'Chatbot',
         path: '/chatbot',
         icon: <RiRobot3Line />
     },
     {
-        id: 5,
+        id: 4,
         text: 'Dự báo thời tiết',
         path: '/weather',
         icon: <TiWeatherPartlySunny />

@@ -5,35 +5,35 @@ import { realtimedb, auth } from '../../firebaseConfig';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 
-const GardenId = () => {
-    const { gardenId } = useParams();
+const DeviceId = () => {
+    const { deviceId } = useParams();
     const [soilMoisture, setSoilMoisture] = useState(0);
     const [pumpStatus, setPumpStatus] = useState(0);
     const [historyData, setHistoryData] = useState([]);
-    const [gardenName, setGardenName] = useState('');
+    const [deviceName, setDeviceName] = useState('');
     const [minMoisture, setMinMoisture] = useState('');
     const [maxMoisture, setMaxMoisture] = useState('');
     const [time, setTime] = useState('');
     const navigate = useNavigate();
     const [editingName, setEditingName] = useState(false);
-    const [newGardenName, setNewGardenName] = useState('');
+    const [newDeviceName, setNewDeviceName] = useState('');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     useEffect(() => {
-        if (!gardenId) return;
+        if (!deviceId) return;
 
-        const moistureRef = ref(realtimedb, `gardens/${gardenId}/doAmDat`);
-        const pumpStatusRef = ref(realtimedb, `gardens/${gardenId}/mayBom/trangThai`);
-        const historyRef = ref(realtimedb, `gardens/${gardenId}/doAmDat/history`);
-        const nameRef = ref(realtimedb, `gardens/${gardenId}/name`);
-        const minRef = ref(realtimedb, `gardens/${gardenId}/doAmDat/min`);
-        const maxRef = ref(realtimedb, `gardens/${gardenId}/doAmDat/max`);
-        const timeRef = ref(realtimedb, `gardens/${gardenId}/time`);
+        const moistureRef = ref(realtimedb, `devices/${deviceId}/doAmDat`);
+        const pumpStatusRef = ref(realtimedb, `devices/${deviceId}/mayBom/trangThai`);
+        const historyRef = ref(realtimedb, `devices/${deviceId}/doAmDat/history`);
+        const nameRef = ref(realtimedb, `devices/${deviceId}/name`);
+        const minRef = ref(realtimedb, `devices/${deviceId}/doAmDat/min`);
+        const maxRef = ref(realtimedb, `devices/${deviceId}/doAmDat/max`);
+        const timeRef = ref(realtimedb, `devices/${deviceId}/time`);
 
         onValue(nameRef, (snapshot) => {
             const name = snapshot.val();
-            setGardenName(name || '');
-            setNewGardenName(name || '');
+            setDeviceName(name || '');
+            setNewDeviceName(name || '');
         });
         onValue(moistureRef, (snapshot) => setSoilMoisture(snapshot.val()?.current || 0));
         onValue(pumpStatusRef, (snapshot) => setPumpStatus(snapshot.val() || 0));
@@ -50,10 +50,10 @@ const GardenId = () => {
         onValue(minRef, (snapshot) => setMinMoisture(snapshot.val() || ''));
         onValue(maxRef, (snapshot) => setMaxMoisture(snapshot.val() || ''));
         onValue(timeRef, (snapshot) => setTime(snapshot.val() || ''));
-    }, [gardenId]);
+    }, [deviceId]);
 
     const handlePumpControl = (status) => {
-        const pumpStatusRef = ref(realtimedb, `gardens/${gardenId}/mayBom/trangThai`);
+        const pumpStatusRef = ref(realtimedb, `devices/${deviceId}/mayBom/trangThai`);
         set(pumpStatusRef, status).catch((error) =>
             console.error("Lỗi khi cập nhật trạng thái máy bơm:", error)
         );
@@ -61,16 +61,16 @@ const GardenId = () => {
 
     const handleEditName = () => setEditingName(true);
     const handleSaveName = () => {
-        const nameRef = ref(realtimedb, `gardens/${gardenId}/name`);
-        set(nameRef, newGardenName)
+        const nameRef = ref(realtimedb, `devices/${deviceId}/name`);
+        set(nameRef, newDeviceName)
             .then(() => {
-                setGardenName(newGardenName);
+                setDeviceName(newDeviceName);
                 setEditingName(false);
             })
-            .catch((error) => console.error("Lỗi khi cập nhật tên khu vườn:", error));
+            .catch((error) => console.error("Lỗi khi cập nhật tên thiết bị:", error));
     };
     const handleCancelEdit = () => {
-        setNewGardenName(gardenName);
+        setNewDeviceName(deviceName);
         setEditingName(false);
     };
 
@@ -82,13 +82,14 @@ const GardenId = () => {
 
     const confirmDelete = () => {
         const user = auth.currentUser;
-        const userGardenRef = ref(realtimedb, `users/${user.uid}/gardens/${gardenId}`);
-        set(userGardenRef, false)
+        if (!user) return;
+        const userDeviceRef = ref(realtimedb, `users/${user.uid}/devices/${deviceId}`);
+        set(userDeviceRef, false)
             .then(() => {
                 setShowDeleteModal(false);
-                navigate('/gardens');
+                navigate('/devices');
             })
-            .catch((error) => console.error("Lỗi khi xóa khu vườn:", error));
+            .catch((error) => console.error("Lỗi khi xóa thiết bị:", error));
     };
 
     const cancelDelete = () => {
@@ -99,7 +100,7 @@ const GardenId = () => {
         const newMin = parseInt(e.target.value, 10);
         if (!isNaN(newMin)) {
             setMinMoisture(newMin);
-            set(ref(realtimedb, `gardens/${gardenId}/doAmDat/min`), newMin);
+            set(ref(realtimedb, `devices/${deviceId}/doAmDat/min`), newMin);
         }
     };
 
@@ -107,7 +108,7 @@ const GardenId = () => {
         const newMax = parseInt(e.target.value, 10);
         if (!isNaN(newMax)) {
             setMaxMoisture(newMax);
-            set(ref(realtimedb, `gardens/${gardenId}/doAmDat/max`), newMax);
+            set(ref(realtimedb, `devices/${deviceId}/doAmDat/max`), newMax);
         }
     };
 
@@ -115,7 +116,7 @@ const GardenId = () => {
         const newTime = parseInt(e.target.value, 10);
         if (!isNaN(newTime)) {
             setTime(newTime);
-            set(ref(realtimedb, `gardens/${gardenId}/time`), newTime);
+            set(ref(realtimedb, `devices/${deviceId}/time`), newTime);
         }
     };
 
@@ -137,10 +138,10 @@ const GardenId = () => {
                         <div className="flex items-center w-full gap-4">
                             <input
                                 type="text"
-                                value={newGardenName}
-                                onChange={(e) => setNewGardenName(e.target.value)}
+                                value={newDeviceName}
+                                onChange={(e) => setNewDeviceName(e.target.value)}
                                 className="flex-1 px-4 py-2 text-lg border-2 border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
-                                placeholder="Nhập tên khu vườn"
+                                placeholder="Nhập tên thiết bị"
                             />
                             <button
                                 onClick={handleSaveName}
@@ -158,7 +159,7 @@ const GardenId = () => {
                     ) : (
                         <>
                             <h1 className="text-3xl font-bold text-green-700 text-center">
-                                {gardenName || 'Khu vườn của bạn'}
+                                {deviceName || 'Thiết bị của bạn'}
                             </h1>
                             <div className="absolute right-0 flex gap-2">
                                 <button
@@ -267,10 +268,10 @@ const GardenId = () => {
 
                     {/* Back Button */}
                     <button
-                        onClick={() => navigate('/gardens')}
+                        onClick={() => navigate('/devices')}
                         className="w-full py-3 bg-green-600 text-white font-semibold rounded-full shadow-lg hover:bg-green-700 transition-all duration-200"
                     >
-                        Trở về trang chủ
+                        Trở về danh sách thiết bị
                     </button>
                 </div>
 
@@ -278,9 +279,9 @@ const GardenId = () => {
                 {showDeleteModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start pt-20 z-50">
                         <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-                            <h3 className="text-xl font-semibold text-gray-800 mb-4">Xác nhận xóa khu vườn</h3>
+                            <h3 className="text-xl font-semibold text-gray-800 mb-4">Xác nhận xóa thiết bị</h3>
                             <p className="text-gray-600 mb-6">
-                                Bạn có chắc chắn muốn xóa khu vườn <span className="font-bold text-green-700">{gardenName || 'này'}</span>? Hành động này không thể hoàn tác.
+                                Bạn có chắc chắn muốn xóa thiết bị <span className="font-bold text-green-700">{deviceName || 'này'}</span>? Hành động này không thể hoàn tác.
                             </p>
                             <div className="flex justify-end gap-4">
                                 <button
@@ -304,4 +305,4 @@ const GardenId = () => {
     );
 };
 
-export default GardenId;
+export default DeviceId;

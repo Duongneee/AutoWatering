@@ -1,12 +1,13 @@
+// ... các import giữ nguyên
 import React, { useState, useEffect } from 'react';
 import { getDatabase, ref, get, update, set } from 'firebase/database';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 
-const AddGarden = () => {
+const AddDevice = () => {
     const [key, setKey] = useState('');
     const [userId, setUserId] = useState(null);
-    const [isLoading, setIsLoading] = useState(false); // Thêm trạng thái loading
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -42,58 +43,58 @@ const AddGarden = () => {
                 return;
             }
 
-            const gardenId = keySnapshot.val();
+            const deviceId = keySnapshot.val();
 
-            // Kiểm tra xem gardenId đã được thêm bởi người dùng khác chưa
+            // Kiểm tra xem thiết bị đã được thêm bởi người dùng khác chưa
             const usersRef = ref(db, 'users');
             const usersSnapshot = await get(usersRef);
-            let isGardenTaken = false;
+            let isDeviceTaken = false;
 
             if (usersSnapshot.exists()) {
                 const users = usersSnapshot.val();
                 for (const uid in users) {
-                    const userGardens = users[uid].gardens;
-                    if (userGardens && userGardens[gardenId] === true) {
-                        isGardenTaken = true;
+                    const userDevices = users[uid].devices;
+                    if (userDevices && userDevices[deviceId] === true) {
+                        isDeviceTaken = true;
                         break;
                     }
                 }
             }
 
-            if (isGardenTaken) {
-                alert('Khu vườn này đã được thêm bởi một người dùng khác.');
+            if (isDeviceTaken) {
+                alert('Thiết bị này đã được thêm bởi một người dùng khác.');
                 setIsLoading(false);
                 return;
             }
 
-            // Kiểm tra khu vườn trong danh sách của người dùng hiện tại
-            const userGardensRef = ref(db, `users/${userId}/gardens/${gardenId}`);
-            const userGardensSnapshot = await get(userGardensRef);
+            // Kiểm tra thiết bị trong danh sách của người dùng hiện tại
+            const userDevicesRef = ref(db, `users/${userId}/devices/${deviceId}`);
+            const userDevicesSnapshot = await get(userDevicesRef);
 
-            if (userGardensSnapshot.exists()) {
-                const gardenStatus = userGardensSnapshot.val();
-                if (gardenStatus === true) {
-                    alert('Khu vườn này đã tồn tại trong danh sách của bạn.');
-                } else if (gardenStatus === false) {
-                    await set(userGardensRef, true);
-                    alert('Khu vườn đã được kích hoạt lại thành công!');
+            if (userDevicesSnapshot.exists()) {
+                const deviceStatus = userDevicesSnapshot.val();
+                if (deviceStatus === true) {
+                    alert('Thiết bị này đã tồn tại trong danh sách của bạn.');
+                } else if (deviceStatus === false) {
+                    await set(userDevicesRef, true);
+                    alert('Thiết bị đã được kích hoạt lại thành công!');
                 }
             } else {
-                await set(userGardensRef, true);
-                alert('Khu vườn đã được thêm thành công vào danh sách của bạn!');
+                await set(userDevicesRef, true);
+                alert('Thiết bị đã được thêm thành công vào danh sách của bạn!');
             }
 
             setIsLoading(false);
-            navigate('/gardens');
+            navigate('/devices'); // Đổi đường dẫn điều hướng nếu cần
         } catch (error) {
-            console.error('Lỗi khi thêm khu vườn:', error);
-            alert('Có lỗi xảy ra khi thêm khu vườn.');
+            console.error('Lỗi khi thêm thiết bị:', error);
+            alert('Có lỗi xảy ra khi thêm thiết bị.');
             setIsLoading(false);
         }
     };
 
     const handleBack = () => {
-        navigate('/gardens');
+        navigate('/devices');
     };
 
     return (
@@ -106,20 +107,20 @@ const AddGarden = () => {
                 </div>
 
                 <h1 className="text-3xl font-extrabold text-center mt-8 mb-6 bg-gradient-to-r from-green-500 to-teal-600 bg-clip-text text-transparent tracking-tight">
-                    Thêm Khu Vườn Mới
+                    Thêm Thiết Bị Mới
                 </h1>
 
                 <div className="space-y-6">
                     <div className="relative group">
                         <label className="block text-sm font-medium text-gray-700 mb-1 transition-all duration-300 group-focus-within:text-teal-600">
-                            Nhập key khu vườn
+                            Nhập key thiết bị
                         </label>
                         <input
                             type="text"
                             value={key}
                             onChange={(e) => setKey(e.target.value)}
                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-300 placeholder-gray-400 shadow-sm hover:shadow-md"
-                            placeholder="Nhập key khu vườn"
+                            placeholder="Nhập key thiết bị"
                         />
                         <svg
                             className="absolute right-3 top-10 w-5 h-5 text-gray-400 group-focus-within:text-teal-500 transition-colors duration-300"
@@ -164,4 +165,4 @@ const AddGarden = () => {
     );
 };
 
-export default AddGarden;
+export default AddDevice;

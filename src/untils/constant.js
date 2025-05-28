@@ -1,14 +1,13 @@
-
 export const path = {
     LOGIN: '/',
-    GARDENLIST: '/gardens',
-    GARDENID: '/gardens/:gardenId',
+    DEVICELIST: '/devices', // Đổi từ GARDENLIST sang DEVICELIST
+    DEVICEID: '/devices/:deviceId', // Đổi từ GARDENID sang DEVICEID
     HOME: '/HOME',
-    GARDEN: '/add-garden',
+    DEVICE: '/add-device', // Đổi từ GARDEN sang DEVICE
     REGISTER: '/register',
     CHATBOT: '/chatbot',
     WEATHER: '/weather',
     MAP: '/map',
-    ADMIN:'/admin',
-    
-}
+    ADMIN: '/admin',
+    OVERVIEW: '/overview/:groupId' // Giữ nguyên vì đã phù hợp
+};

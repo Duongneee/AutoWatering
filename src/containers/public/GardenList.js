@@ -6,28 +6,28 @@ import { auth } from '../../firebaseConfig';
 import { onAuthStateChanged } from "firebase/auth";
 import a from '../../asset/1.jpg';
 
-const GardenCard = ({ garden, onRemoveGardenFromGroup, groupId }) => (
+const DeviceCard = ({ device, onRemoveDeviceFromGroup, groupId }) => (
     <div className="relative bg-white rounded-3xl shadow-md overflow-hidden transform transition-all duration-500 hover:scale-105 hover:shadow-xl group border border-teal-100">
         <div className="relative">
             <img
                 src={a}
-                alt={garden.name}
+                alt={device.name}
                 className="w-full h-64 object-cover transition-transform duration-700 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         </div>
         <div className="p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-3 truncate group-hover:text-teal-600 transition-colors duration-300">
-                {garden.name}
+                {device.name}
             </h2>
             <p className="text-gray-600 text-sm flex items-center gap-2 mb-4">
                 <svg className="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                Độ ẩm: <span className="text-teal-700 font-medium">{garden.doAmDat.current}%</span>
+                Độ ẩm: <span className="text-teal-700 font-medium">{device.doAmDat?.current ?? 'N/A'}%</span>
             </p>
             <div className="flex gap-3">
-                <Link to={`/gardens/${garden.id}`} className="flex-1">
+                <Link to={`/devices/${device.id}`} className="flex-1">
                     <button className="w-full bg-gradient-to-r from-teal-500 to-blue-600 text-white py-2 px-4 rounded-lg shadow-md hover:from-teal-600 hover:to-blue-700 transition-all duration-300 flex items-center justify-center gap-2">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
@@ -35,9 +35,9 @@ const GardenCard = ({ garden, onRemoveGardenFromGroup, groupId }) => (
                         Xem chi tiết
                     </button>
                 </Link>
-                {groupId && (
+                {groupId && onRemoveDeviceFromGroup && (
                     <button
-                        onClick={() => onRemoveGardenFromGroup(groupId, garden.id)}
+                        onClick={() => onRemoveDeviceFromGroup(groupId, device.id)}
                         className="bg-red-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-red-600 transition-all duration-300"
                     >
                         Xóa
@@ -51,26 +51,30 @@ const GardenCard = ({ garden, onRemoveGardenFromGroup, groupId }) => (
     </div>
 );
 
-const AddGardenToGroupForm = ({ groupId, gardens, onAddGardenToGroup }) => {
-    const [selectedGarden, setSelectedGarden] = useState('');
+const AddDeviceToGroupForm = ({ groupId, devices, groups, onAddDeviceToGroup }) => {
+    const [selectedDevice, setSelectedDevice] = useState('');
+
+    const unassignedDevices = devices.filter(device => {
+        return !Object.values(groups).some(group => group.devices && group.devices[device.id]);
+    });
 
     const handleAdd = () => {
-        if (!selectedGarden) return;
-        onAddGardenToGroup(groupId, selectedGarden);
-        setSelectedGarden('');
+        if (!selectedDevice) return;
+        onAddDeviceToGroup(groupId, selectedDevice);
+        setSelectedDevice('');
     };
 
     return (
         <div className="mt-4 bg-white p-5 rounded-xl shadow-md border border-teal-100">
             <div className="flex gap-4">
                 <select
-                    value={selectedGarden}
-                    onChange={(e) => setSelectedGarden(e.target.value)}
+                    value={selectedDevice}
+                    onChange={(e) => setSelectedDevice(e.target.value)}
                     className="flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all duration-200 bg-gray-50"
                 >
-                    <option value="">Chọn khu vườn</option>
-                    {gardens.map(garden => (
-                        <option key={garden.id} value={garden.id}>{garden.name}</option>
+                    <option value="">Chọn thiết bị</option>
+                    {unassignedDevices.map(device => (
+                        <option key={device.id} value={device.id}>{device.name}</option>
                     ))}
                 </select>
                 <button
@@ -80,11 +84,14 @@ const AddGardenToGroupForm = ({ groupId, gardens, onAddGardenToGroup }) => {
                     Thêm
                 </button>
             </div>
+            {unassignedDevices.length === 0 && (
+                <p className="text-gray-600 text-sm mt-2">Không có thiết bị nào chưa được phân nhóm.</p>
+            )}
         </div>
     );
 };
 
-const GroupSection = ({ group, groupId, gardens, onAddGardenToGroup, onDeleteGroup, onRemoveGardenFromGroup }) => {
+const GroupSection = ({ group, groupId, devices, groups, onAddDeviceToGroup, onDeleteGroup, onRemoveDeviceFromGroup }) => {
     const [showAddForm, setShowAddForm] = useState(false);
 
     return (
@@ -96,32 +103,40 @@ const GroupSection = ({ group, groupId, gardens, onAddGardenToGroup, onDeleteGro
                         onClick={() => setShowAddForm(!showAddForm)}
                         className="bg-teal-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-teal-600 transition-all duration-300"
                     >
-                        {showAddForm ? 'Ẩn' : 'Thêm vườn'}
+                        {showAddForm ? 'Ẩn' : 'Thêm thiết bị'}
                     </button>
+                    <Link to={`/overview/${groupId}`}>
+                        <button
+                            className="bg-blue-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-blue-600 transition-all duration-300"
+                        >
+                            Xem tổng quan
+                        </button>
+                    </Link>
                     <button
                         onClick={() => onDeleteGroup(groupId)}
                         className="bg-red-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-red-600 transition-all duration-300"
                     >
-                        Xóa khu vực
+                        Xóa nhóm
                     </button>
                 </div>
             </div>
             {showAddForm && (
-                <AddGardenToGroupForm
+                <AddDeviceToGroupForm
                     groupId={groupId}
-                    gardens={gardens}
-                    onAddGardenToGroup={onAddGardenToGroup}
+                    devices={devices}
+                    groups={groups}
+                    onAddDeviceToGroup={onAddDeviceToGroup}
                 />
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {gardens
-                    .filter(garden => group.gardens && group.gardens[garden.id])
-                    .map(garden => (
-                        <GardenCard
-                            key={garden.id}
-                            garden={garden}
+                {devices
+                    .filter(device => group.devices && group.devices[device.id])
+                    .map(device => (
+                        <DeviceCard
+                            key={device.id}
+                            device={device}
                             groupId={groupId}
-                            onRemoveGardenFromGroup={onRemoveGardenFromGroup}
+                            onRemoveDeviceFromGroup={onRemoveDeviceFromGroup}
                         />
                     ))}
             </div>
@@ -129,19 +144,19 @@ const GroupSection = ({ group, groupId, gardens, onAddGardenToGroup, onDeleteGro
     );
 };
 
-const UnassignedGardensSection = ({ gardens, groups }) => {
-    const unassignedGardens = gardens.filter(garden => {
-        return !Object.values(groups).some(group => group.gardens && group.gardens[garden.id]);
+const UnassignedDevicesSection = ({ devices, groups }) => {
+    const unassignedDevices = devices.filter(device => {
+        return !Object.values(groups).some(group => group.devices && group.devices[device.id]);
     });
 
-    if (unassignedGardens.length === 0) return null;
+    if (unassignedDevices.length === 0) return null;
 
     return (
         <div className="mb-12">
-            <h2 className="text-2xl font-bold text-teal-800 mb-6 bg-teal-50 p-5 rounded-xl shadow-sm text-center">Khu Vườn Chưa Được Phân Khu</h2>
+            <h2 className="text-2xl font-bold text-teal-800 mb-6 bg-teal-50 p-5 rounded-xl shadow-sm text-center">Thiết Bị Chưa Được Phân Nhóm</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {unassignedGardens.map(garden => (
-                    <GardenCard key={garden.id} garden={garden} />
+                {unassignedDevices.map(device => (
+                    <DeviceCard key={device.id} device={device} />
                 ))}
             </div>
         </div>
@@ -158,17 +173,17 @@ const AddGroupForm = ({ newGroupName, setNewGroupName, onAddGroup, isOpen, setIs
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
                 </svg>
-                Thêm Khu Vực Mới
+                Thêm Nhóm Mới
             </button>
         ) : (
             <div className="bg-white p-8 rounded-3xl shadow-xl border border-teal-100 transform transition-all duration-300 animate-slideIn w-full max-w-lg">
-                <h2 className="text-3xl font-bold text-teal-800 mb-6 text-center">Thêm Khu Vực Mới</h2>
+                <h2 className="text-3xl font-bold text-teal-800 mb-6 text-center">Thêm Nhóm Mới</h2>
                 <div className="flex gap-4 items-center">
                     <input
                         type="text"
                         value={newGroupName}
                         onChange={(e) => setNewGroupName(e.target.value)}
-                        placeholder="Nhập tên khu vực"
+                        placeholder="Nhập tên nhóm"
                         className="flex-1 p-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 text-gray-700 placeholder-gray-400 transition-all duration-200 bg-gray-50"
                     />
                     <button
@@ -189,38 +204,54 @@ const AddGroupForm = ({ newGroupName, setNewGroupName, onAddGroup, isOpen, setIs
     </div>
 );
 
-const GardenList = () => {
-    const [gardens, setGardens] = useState([]);
+const DeviceList = () => {
+    const [devices, setDevices] = useState([]);
     const [groups, setGroups] = useState({});
     const [newGroupName, setNewGroupName] = useState('');
     const [error, setError] = useState(null);
     const [isAddGroupOpen, setIsAddGroupOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (!user) {
                 console.log("User not logged in");
+                setError("Vui lòng đăng nhập để xem danh sách thiết bị");
+                setLoading(false);
                 return;
             }
 
+            setLoading(true);
             const userRef = ref(realtimedb, `users/${user.uid}`);
             onValue(userRef, (snapshot) => {
                 const userData = snapshot.val() || {};
-                const gardenIds = userData.gardens || {};
-                setGroups(userData.groups || {});
+                const loadedGroups = userData.groups || {};
+                const userDeviceIds = userData.devices || {};
+                console.log("Loaded groups:", loadedGroups); // Debug: Kiểm tra groups
+                console.log("User device IDs:", userDeviceIds); // Debug: Kiểm tra device IDs của user
+                setGroups(loadedGroups);
 
-                const gardensRef = ref(realtimedb, "gardens");
-                onValue(gardensRef, (snapshot) => {
-                    const allGardens = snapshot.val() || {};
-                    const linkedGardens = Object.keys(gardenIds).reduce((acc, id) => {
-                        if (gardenIds[id] && allGardens[id]) {
-                            acc.push({ id, ...allGardens[id] });
-                        }
-                        return acc;
-                    }, []);
-                    setGardens(linkedGardens);
-                }, (error) => setError(error.message));
-            }, (error) => setError(error.message));
+                const devicesRef = ref(realtimedb, "devices");
+                onValue(devicesRef, (snapshot) => {
+                    const allDevices = snapshot.val() || {};
+                    console.log("All devices:", allDevices); // Debug: Kiểm tra tất cả devices
+                    // Lấy tất cả thiết bị của user từ userData.devices
+                    const linkedDevices = Object.keys(userDeviceIds)
+                        .filter(id => allDevices[id])
+                        .map(id => ({ id, ...allDevices[id] }));
+                    console.log("Linked devices:", linkedDevices); // Debug: Kiểm tra thiết bị được liên kết
+                    setDevices(linkedDevices);
+                    setLoading(false);
+                }, (error) => {
+                    console.error("Error fetching devices:", error);
+                    setError("Lỗi khi tải dữ liệu thiết bị: " + error.message);
+                    setLoading(false);
+                });
+            }, (error) => {
+                console.error("Error fetching user data:", error);
+                setError("Lỗi khi tải dữ liệu người dùng: " + error.message);
+                setLoading(false);
+            });
         });
 
         return () => unsubscribe();
@@ -228,7 +259,7 @@ const GardenList = () => {
 
     const handleAddGroup = () => {
         if (!newGroupName.trim()) {
-            setError("Tên khu vực không được để trống");
+            setError("Tên nhóm không được để trống");
             return;
         }
 
@@ -238,24 +269,24 @@ const GardenList = () => {
         const newGroupRef = ref(realtimedb, `users/${user.uid}/groups/${Date.now()}`);
         set(newGroupRef, {
             name: newGroupName,
-            gardens: {}
+            devices: {}
         })
             .then(() => {
                 setNewGroupName('');
                 setIsAddGroupOpen(false);
                 setError(null);
             })
-            .catch(error => setError("Lỗi khi thêm khu vực: " + error.message));
+            .catch(error => setError("Lỗi khi thêm nhóm: " + error.message));
     };
 
-    const handleAddGardenToGroup = (groupId, gardenId) => {
+    const handleAddDeviceToGroup = (groupId, deviceId) => {
         const user = auth.currentUser;
         if (!user) return;
 
-        const groupGardenRef = ref(realtimedb, `users/${user.uid}/groups/${groupId}/gardens`);
-        update(groupGardenRef, { [gardenId]: true })
+        const groupDeviceRef = ref(realtimedb, `users/${user.uid}/groups/${groupId}/devices`);
+        update(groupDeviceRef, { [deviceId]: true })
             .then(() => setError(null))
-            .catch(error => setError("Lỗi khi thêm vườn: " + error.message));
+            .catch(error => setError("Lỗi khi thêm thiết bị: " + error.message));
     };
 
     const handleDeleteGroup = (groupId) => {
@@ -265,24 +296,36 @@ const GardenList = () => {
         const groupRef = ref(realtimedb, `users/${user.uid}/groups/${groupId}`);
         remove(groupRef)
             .then(() => setError(null))
-            .catch(error => setError("Lỗi khi xóa khu vực: " + error.message));
+            .catch(error => setError("Lỗi khi xóa nhóm: " + error.message));
     };
 
-    const handleRemoveGardenFromGroup = (groupId, gardenId) => {
+    const handleRemoveDeviceFromGroup = (groupId, deviceId) => {
         const user = auth.currentUser;
         if (!user) return;
 
-        const gardenRef = ref(realtimedb, `users/${user.uid}/groups/${groupId}/gardens/${gardenId}`);
-        remove(gardenRef)
-            .then(() => setError(null))
-            .catch(error => setError("Lỗi khi xóa vườn khỏi khu vực: " + error.message));
+        const deviceRef = ref(realtimedb, `users/${user.uid}/groups/${groupId}/devices/${deviceId}`);
+        remove(deviceRef)
+            .then(() => {
+                // Cập nhật state groups để phản ánh thay đổi
+                const updatedGroups = { ...groups };
+                if (updatedGroups[groupId] && updatedGroups[groupId].devices) {
+                    delete updatedGroups[groupId].devices[deviceId];
+                    setGroups(updatedGroups);
+                }
+                setError(null);
+            })
+            .catch(error => setError("Lỗi khi xóa thiết bị khỏi nhóm: " + error.message));
     };
+
+    if (loading) {
+        return <div className="text-center text-gray-600">Đang tải dữ liệu...</div>;
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-teal-50 via-green-50 to-blue-50 px-8 py-12 flex flex-col items-center">
             <div className="w-full max-w-7xl flex justify-between items-center mb-12">
                 <h1 className="text-5xl font-extrabold bg-gradient-to-r from-teal-600 to-blue-700 bg-clip-text text-transparent text-center mx-auto animate-fadeIn">
-                    Danh Sách Khu Vườn
+                    Danh Sách Thiết Bị
                 </h1>
             </div>
 
@@ -306,13 +349,14 @@ const GardenList = () => {
                         key={groupId}
                         group={group}
                         groupId={groupId}
-                        gardens={gardens}
-                        onAddGardenToGroup={handleAddGardenToGroup}
+                        devices={devices}
+                        groups={groups}
+                        onAddDeviceToGroup={handleAddDeviceToGroup}
                         onDeleteGroup={handleDeleteGroup}
-                        onRemoveGardenFromGroup={handleRemoveGardenFromGroup}
+                        onRemoveDeviceFromGroup={handleRemoveDeviceFromGroup}
                     />
                 ))}
-                <UnassignedGardensSection gardens={gardens} groups={groups} />
+                <UnassignedDevicesSection devices={devices} groups={groups} />
             </div>
 
             <style jsx>{`
@@ -335,4 +379,4 @@ const GardenList = () => {
     );
 };
 
-export default GardenList;
+export default DeviceList;

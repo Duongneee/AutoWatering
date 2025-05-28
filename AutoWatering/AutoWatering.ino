@@ -10,11 +10,11 @@
 #define WIFI_SSID "Sayuu"
 #define WIFI_PASSWORD "11111111"
 #define API_KEY "AIzaSyALwBsc9XNs9O4JG1QIG494XUPXhCF1CnM"
-#define USER_EMAIL "iot@gmail.com"
-#define USER_PASSWORD "Duongquachiot"
+#define USER_EMAIL "quachduong461@gmail.com"
+#define USER_PASSWORD "Duongquach02"
 #define DATABASE_URL "https://auto-watering-7c50f-default-rtdb.europe-west1.firebasedatabase.app/"
 
-// Firebase đối tượng
+// Firebase đối tượng 
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;

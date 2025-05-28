@@ -11,6 +11,7 @@ const AdminPage = () => {
     const [gardens, setGardens] = useState({});
     const [keys, setKeys] = useState({});
     const [selectedTab, setSelectedTab] = useState("users");
+    const [selectedUserId, setSelectedUserId] = useState(null); // Thêm trạng thái để lưu userId được chọn
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({});
     const [currentUser, setCurrentUser] = useState(null);
@@ -136,8 +137,17 @@ const AdminPage = () => {
         navigate(`/garden/${gardenId}`);
     };
 
+    const viewUserGardens = (userId) => {
+        setSelectedTab("gardens"); // Chuyển sang tab Gardens
+        setSelectedUserId(userId); // Lưu userId để lọc khu vườn
+    };
+
+    const clearUserFilter = () => {
+        setSelectedUserId(null); // Xóa bộ lọc người dùng
+    };
+
     if (!currentUser) {
-        return <div className="text-center p-8 text-gray-600">Please log in to access the Admin page.</div>;
+        return <div className="text-center p-8 text-gray-600">Vui lòng đăng nhập để truy cập trang quản trị.</div>;
     }
 
     return (
@@ -157,16 +167,19 @@ const AdminPage = () => {
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                         </svg>
-                        <span className="font-semibold">Manage Users</span>
+                        <span className="font-semibold">Quản lý người dùng</span>
                     </li>
                     <li
                         className={`py-3 px-4 cursor-pointer rounded-lg transition duration-300 flex items-center gap-3 ${selectedTab === "gardens" ? "bg-white text-green-800 shadow-md" : "hover:bg-green-700"}`}
-                        onClick={() => setSelectedTab("gardens")}
+                        onClick={() => {
+                            setSelectedTab("gardens");
+                            setSelectedUserId(null); // Xóa bộ lọc khi nhấp vào tab Gardens
+                        }}
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7h18M3 11h18m-9 4v5m-4-5h8m-8 0v5m4-5v5"></path>
                         </svg>
-                        <span className="font-semibold">Manage Gardens</span>
+                        <span className="font-semibold">Quản lý khu vườn</span>
                     </li>
                     <li
                         className={`py-3 px-4 cursor-pointer rounded-lg transition duration-300 flex items-center gap-3 hover:bg-green-700`}
@@ -175,7 +188,7 @@ const AdminPage = () => {
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
                         </svg>
-                        <span className="font-semibold">Add Garden</span>
+                        <span className="font-semibold">Thêm khu vườn</span>
                     </li>
                 </ul>
                 <div className="mt-auto">
@@ -186,7 +199,7 @@ const AdminPage = () => {
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                         </svg>
-                        <span className="font-semibold">Logout</span>
+                        <span className="font-semibold">Đăng xuất</span>
                     </button>
                 </div>
             </div>
@@ -194,8 +207,16 @@ const AdminPage = () => {
             <div className="ml-72 p-10 w-full">
                 <div className="flex justify-between items-center mb-10">
                     <h1 className="text-4xl font-extrabold text-green-800 tracking-tight">
-                        {selectedTab === "users" ? "User Management" : "Garden Management"}
+                        {selectedTab === "users" ? "Quản lý người dùng" : "Quản lý khu vườn"}
                     </h1>
+                    {selectedTab === "gardens" && selectedUserId && (
+                        <button
+                            className="bg-gray-400 text-white px-6 py-2 rounded-full hover:bg-gray-500 transition duration-200 shadow-md"
+                            onClick={clearUserFilter}
+                        >
+                            Xem tất cả khu vườn
+                        </button>
+                    )}
                 </div>
 
                 {selectedTab === "users" && (
@@ -205,22 +226,29 @@ const AdminPage = () => {
                                 <tr>
                                     <th className="py-4 px-6 text-left font-semibold">ID</th>
                                     <th className="py-4 px-6 text-left font-semibold">Email</th>
-                                    <th className="py-4 px-6 text-left font-semibold">Actions</th>
+                                    <th className="py-4 px-6 text-left font-semibold">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {Object.entries(users)
                                     .filter(([_, user]) => user.role !== 1)
                                     .map(([uid, user]) => (
-                                        <tr key={uid} className="border-b hover:bg-green-50 transition duration-200">
+                                        <tr
+                                            key={uid}
+                                            className="border-b hover:bg-green-50 transition duration-200 cursor-pointer"
+                                            onClick={() => viewUserGardens(uid)}
+                                        >
                                             <td className="py-4 px-6 text-gray-700">{uid.slice(0, 8)}...</td>
                                             <td className="py-4 px-6 text-gray-700">{user.email}</td>
                                             <td className="py-4 px-6">
                                                 <button
                                                     className="bg-red-500 text-white px-4 py-1 rounded-full hover:bg-red-600 transition duration-200 shadow-md"
-                                                    onClick={() => deleteUser(uid)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // Ngăn sự kiện click trên hàng
+                                                        deleteUser(uid);
+                                                    }}
                                                 >
-                                                    Delete
+                                                    Xóa
                                                 </button>
                                             </td>
                                         </tr>
@@ -233,21 +261,153 @@ const AdminPage = () => {
                 {selectedTab === "gardens" && (
                     <div className="w-full">
                         <div className="space-y-10">
-                            {Object.entries(users)
-                                .filter(([_, user]) => user.role !== 1)
-                                .map(([userId, user]) => (
-                                    <div key={userId} className="bg-white rounded-xl shadow-xl p-6">
-                                        <h2 className="text-2xl font-bold text-green-700 mb-6">
-                                            {user.email} <span className="text-sm text-gray-500">({userId.slice(0, 8)}...)</span>
-                                        </h2>
-                                        {user.gardens && Object.keys(user.gardens).length > 0 ? (
+                            {selectedUserId ? (
+                                <div className="bg-white rounded-xl shadow-xl p-6">
+                                    <h2 className="text-2xl font-bold text-green-700 mb-6">
+                                        {users[selectedUserId]?.email} <span className="text-sm text-gray-500">({selectedUserId.slice(0, 8)}...)</span>
+                                    </h2>
+                                    {users[selectedUserId]?.gardens && Object.keys(users[selectedUserId].gardens).length > 0 ? (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            {Object.entries(users[selectedUserId].gardens)
+                                                .filter(([_, status]) => status === true)
+                                                .map(([gardenId]) => {
+                                                    const garden = gardens[gardenId];
+                                                    const key = getKeyFromGardenId(gardenId);
+                                                    return garden ? (
+                                                        <div
+                                                            key={gardenId}
+                                                            className="relative bg-gray-50 rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-xl border border-green-100 cursor-pointer"
+                                                            onClick={() => viewGardenDetail(gardenId)}
+                                                        >
+                                                            <div className="relative">
+                                                                <img
+                                                                    src={a}
+                                                                    alt={garden.name}
+                                                                    className="w-full h-48 object-cover transition-transform duration-500 hover:scale-110"
+                                                                />
+                                                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                                                            </div>
+                                                            <div className="p-5">
+                                                                <h3 className="text-xl font-semibold text-gray-900 mb-3 truncate">
+                                                                    {garden.name}
+                                                                </h3>
+                                                                <p className="text-gray-600 text-sm mb-2">
+                                                                    Key: <span className="font-semibold text-green-600">{key}</span>
+                                                                </p>
+                                                                <p className="text-gray-600 text-sm mb-2">
+                                                                    Garden ID: <span className="font-semibold text-green-600">{gardenId}</span>
+                                                                </p>
+                                                                <p className="text-gray-600 text-sm mb-2">
+                                                                    Độ ẩm: <span className="font-semibold text-green-600">{garden.doAmDat.current}%</span>
+                                                                </p>
+                                                                <div className="flex justify-between items-center" onClick={(e) => e.stopPropagation()}>
+                                                                    <button
+                                                                        className={`px-3 py-1 rounded-full text-white text-sm font-medium transition duration-200 shadow-md ${garden.mayBom.trangThai === "On" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"}`}
+                                                                        onClick={() => togglePump(gardenId, garden.mayBom.trangThai)}
+                                                                    >
+                                                                        {garden.mayBom.trangThai}
+                                                                    </button>
+                                                                    <button
+                                                                        className="bg-red-500 text-white px-3 py-1 rounded-full text-sm hover:bg-red-600 transition duration-200 shadow-md"
+                                                                        onClick={() => handleDeleteGarden(gardenId, selectedUserId)}
+                                                                    >
+                                                                        Xóa
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            <div className="absolute top-3 right-3 bg-gradient-to-r from-green-400 to-teal-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md">
+                                                                {garden.mayBom.trangThai === "On" ? "Hoạt động" : "Không hoạt động"}
+                                                            </div>
+                                                        </div>
+                                                    ) : null;
+                                                })}
+                                        </div>
+                                    ) : (
+                                        <p className="text-gray-500 italic">Người dùng này chưa được gán khu vườn nào.</p>
+                                    )}
+                                </div>
+                            ) : (
+                                <>
+                                    {Object.entries(users)
+                                        .filter(([_, user]) => user.role !== 1)
+                                        .map(([userId, user]) => (
+                                            <div key={userId} className="bg-white rounded-xl shadow-xl p-6">
+                                                <h2 className="text-2xl font-bold text-green-700 mb-6">
+                                                    {user.email} <span className="text-sm text-gray-500">({userId.slice(0, 8)}...)</span>
+                                                </h2>
+                                                {user.gardens && Object.keys(user.gardens).length > 0 ? (
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                                        {Object.entries(user.gardens)
+                                                            .filter(([_, status]) => status === true)
+                                                            .map(([gardenId]) => {
+                                                                const garden = gardens[gardenId];
+                                                                const key = getKeyFromGardenId(gardenId);
+                                                                return garden ? (
+                                                                    <div
+                                                                        key={gardenId}
+                                                                        className="relative bg-gray-50 rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-xl border border-green-100 cursor-pointer"
+                                                                        onClick={() => viewGardenDetail(gardenId)}
+                                                                    >
+                                                                        <div className="relative">
+                                                                            <img
+                                                                                src={a}
+                                                                                alt={garden.name}
+                                                                                className="w-full h-48 object-cover transition-transform duration-500 hover:scale-110"
+                                                                            />
+                                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                                                                        </div>
+                                                                        <div className="p-5">
+                                                                            <h3 className="text-xl font-semibold text-gray-900 mb-3 truncate">
+                                                                                {garden.name}
+                                                                            </h3>
+                                                                            <p className="text-gray-600 text-sm mb-2">
+                                                                                Key: <span className="font-semibold text-green-600">{key}</span>
+                                                                            </p>
+                                                                            <p className="text-gray-600 text-sm mb-2">
+                                                                                Garden ID: <span className="font-semibold text-green-600">{gardenId}</span>
+                                                                            </p>
+                                                                            <p className="text-gray-600 text-sm mb-2">
+                                                                                Độ ẩm: <span className="font-semibold text-green-600">{garden.doAmDat.current}%</span>
+                                                                            </p>
+                                                                            <div className="flex justify-between items-center" onClick={(e) => e.stopPropagation()}>
+                                                                                <button
+                                                                                    className={`px-3 py-1 rounded-full text-white text-sm font-medium transition duration-200 shadow-md ${garden.mayBom.trangThai === "On" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"}`}
+                                                                                    onClick={() => togglePump(gardenId, garden.mayBom.trangThai)}
+                                                                                >
+                                                                                    {garden.mayBom.trangThai}
+                                                                                </button>
+                                                                                <button
+                                                                                    className="bg-red-500 text-white px-3 py-1 rounded-full text-sm hover:bg-red-600 transition duration-200 shadow-md"
+                                                                                    onClick={() => handleDeleteGarden(gardenId, userId)}
+                                                                                >
+                                                                                    Xóa
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="absolute top-3 right-3 bg-gradient-to-r from-green-400 to-teal-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md">
+                                                                            {garden.mayBom.trangThai === "On" ? "Hoạt động" : "Không hoạt động"}
+                                                                        </div>
+                                                                    </div>
+                                                                ) : null;
+                                                            })}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-gray-500 italic">Người dùng này chưa được gán khu vườn nào.</p>
+                                                )}
+                                            </div>
+                                        ))}
+
+                                    <div className="bg-white rounded-xl shadow-xl p-6">
+                                        <h2 className="text-2xl font-bold text-green-700 mb-6">Khu vườn chưa được gán</h2>
+                                        {Object.entries(gardens).length > 0 ? (
                                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                                {Object.entries(user.gardens)
-                                                    .filter(([_, status]) => status === true)
-                                                    .map(([gardenId]) => {
-                                                        const garden = gardens[gardenId];
+                                                {Object.entries(gardens)
+                                                    .filter(([gardenId]) => {
+                                                        return !Object.values(users).some(user => user.gardens && user.gardens[gardenId]);
+                                                    })
+                                                    .map(([gardenId, garden]) => {
                                                         const key = getKeyFromGardenId(gardenId);
-                                                        return garden ? (
+                                                        return (
                                                             <div
                                                                 key={gardenId}
                                                                 className="relative bg-gray-50 rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-xl border border-green-100 cursor-pointer"
@@ -262,9 +422,7 @@ const AdminPage = () => {
                                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
                                                                 </div>
                                                                 <div className="p-5">
-                                                                    <h3 className="text-xl font-semibold text-gray-900 mb-3 truncate">
-                                                                        {garden.name}
-                                                                    </h3>
+                                                                    <h3 className="text-xl font-semibold text-gray-900 mb-3 truncate">{garden.name}</h3>
                                                                     <p className="text-gray-600 text-sm mb-2">
                                                                         Key: <span className="font-semibold text-green-600">{key}</span>
                                                                     </p>
@@ -272,7 +430,7 @@ const AdminPage = () => {
                                                                         Garden ID: <span className="font-semibold text-green-600">{gardenId}</span>
                                                                     </p>
                                                                     <p className="text-gray-600 text-sm mb-2">
-                                                                        Humidity: <span className="font-semibold text-green-600">{garden.doAmDat.current}%</span>
+                                                                        Độ ẩm: <span className="font-semibold text-green-600">{garden.doAmDat.current}%</span>
                                                                     </p>
                                                                     <div className="flex justify-between items-center" onClick={(e) => e.stopPropagation()}>
                                                                         <button
@@ -283,221 +441,160 @@ const AdminPage = () => {
                                                                         </button>
                                                                         <button
                                                                             className="bg-red-500 text-white px-3 py-1 rounded-full text-sm hover:bg-red-600 transition duration-200 shadow-md"
-                                                                            onClick={() => handleDeleteGarden(gardenId, userId)}
+                                                                            onClick={() => handleDeleteGarden(gardenId, null)}
                                                                         >
-                                                                            Delete
+                                                                            Xóa
                                                                         </button>
                                                                     </div>
                                                                 </div>
                                                                 <div className="absolute top-3 right-3 bg-gradient-to-r from-green-400 to-teal-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md">
-                                                                    {garden.mayBom.trangThai === "On" ? "Active" : "Inactive"}
+                                                                    {garden.mayBom.trangThai === "On" ? "Hoạt động" : "Không hoạt động"}
                                                                 </div>
                                                             </div>
-                                                        ) : null;
+                                                        );
                                                     })}
                                             </div>
                                         ) : (
-                                            <p className="text-gray-500 italic">No gardens assigned to this user.</p>
+                                            <p className="text-gray-500 italic">Không có khu vườn chưa được gán.</p>
                                         )}
                                     </div>
-                                ))}
+                                </>
+                            )}
+                        </div>
+                    </div>
+                )}
 
-                            <div className="bg-white rounded-xl shadow-xl p-6">
-                                <h2 className="text-2xl font-bold text-green-700 mb-6">Unassigned Gardens</h2>
-                                {Object.entries(gardens).length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                        {Object.entries(gardens)
-                                            .filter(([gardenId]) => {
-                                                return !Object.values(users).some(user => user.gardens && user.gardens[gardenId]);
-                                            })
-                                            .map(([gardenId, garden]) => {
-                                                const key = getKeyFromGardenId(gardenId);
-                                                return (
-                                                    <div
-                                                        key={gardenId}
-                                                        className="relative bg-gray-50 rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-xl border border-green-100 cursor-pointer"
-                                                        onClick={() => viewGardenDetail(gardenId)}
-                                                    >
-                                                        <div className="relative">
-                                                            <img
-                                                                src={a}
-                                                                alt={garden.name}
-                                                                className="w-full h-48 object-cover transition-transform duration-500 hover:scale-110"
-                                                            />
-                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
-                                                        </div>
-                                                        <div className="p-5">
-                                                            <h3 className="text-xl font-semibold text-gray-900 mb-3 truncate">{garden.name}</h3>
-                                                            <p className="text-gray-600 text-sm mb-2">
-                                                                Key: <span className="font-semibold text-green-600">{key}</span>
-                                                            </p>
-                                                            <p className="text-gray-600 text-sm mb-2">
-                                                                Garden ID: <span className="font-semibold text-green-600">{gardenId}</span>
-                                                            </p>
-                                                            <p className="text-gray-600 text-sm mb-2">
-                                                                Humidity: <span className="font-semibold text-green-600">{garden.doAmDat.current}%</span>
-                                                            </p>
-                                                            <div className="flex justify-between items-center" onClick={(e) => e.stopPropagation()}>
-                                                                <button
-                                                                    className={`px-3 py-1 rounded-full text-white text-sm font-medium transition duration-200 shadow-md ${garden.mayBom.trangThai === "On" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"}`}
-                                                                    onClick={() => togglePump(gardenId, garden.mayBom.trangThai)}
-                                                                >
-                                                                    {garden.mayBom.trangThai}
-                                                                </button>
-                                                                <button
-                                                                    className="bg-red-500 text-white px-3 py-1 rounded-full text-sm hover:bg-red-600 transition duration-200 shadow-md"
-                                                                    onClick={() => handleDeleteGarden(gardenId, null)}
-                                                                >
-                                                                    Delete
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                        <div className="absolute top-3 right-3 bg-gradient-to-r from-green-400 to-teal-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md">
-                                                            {garden.mayBom.trangThai === "On" ? "Active" : "Inactive"}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                    </div>
-                                ) : (
-                                    <p className="text-gray-500 italic">No unassigned gardens.</p>
-                                )}
+                {showModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                        <div className="bg-white p-8 rounded-2xl w-96 shadow-2xl transform transition-all duration-300 scale-100 hover:scale-105">
+                            <h2 className="text-2xl font-bold mb-6 text-green-700 tracking-tight">Thêm khu vườn mới</h2>
+                            <input
+                                type="text"
+                                placeholder="Key (e.g., key_4)"
+                                className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
+                                value={formData.key || ""}
+                                onChange={(e) => setFormData({ ...formData, key: e.target.value })}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Garden ID (e.g., gardenId4)"
+                                className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
+                                value={formData.gardenId || ""}
+                                onChange={(e) => setFormData({ ...formData, gardenId: e.target.value })}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Tên khu vườn"
+                                className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
+                                value={formData.name || ""}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            />
+                            <input
+                                type="number"
+                                placeholder="Vĩ độ"
+                                className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
+                                value={formData.latitude || ""}
+                                onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) })}
+                            />
+                            <input
+                                type="number"
+                                placeholder="Kinh độ"
+                                className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
+                                value={formData.longitude || ""}
+                                onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) })}
+                            />
+                            <input
+                                type="number"
+                                placeholder="Độ ẩm hiện tại"
+                                className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
+                                value={formData.currentHumidity || ""}
+                                onChange={(e) => setFormData({ ...formData, currentHumidity: parseInt(e.target.value) })}
+                            />
+                            <input
+                                type="number"
+                                placeholder="Độ ẩm tối đa"
+                                className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
+                                value={formData.maxHumidity || ""}
+                                onChange={(e) => setFormData({ ...formData, maxHumidity: parseInt(e.target.value) })}
+                            />
+                            <input
+                                type="number"
+                                placeholder="Độ ẩm tối thiểu"
+                                className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
+                                value={formData.minHumidity || ""}
+                                onChange={(e) => setFormData({ ...formData, minHumidity: parseInt(e.target.value) })}
+                            />
+                            <input
+                                type="number"
+                                placeholder="Thời gian (phút)"
+                                className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
+                                value={formData.time || ""}
+                                onChange={(e) => setFormData({ ...formData, time: parseInt(e.target.value) })}
+                            />
+                            <div className="flex justify-end space-x-4">
+                                <button
+                                    className="bg-gray-400 text-white px-6 py-2 rounded-full hover:bg-gray-500 transition duration-200 shadow-md"
+                                    onClick={() => setShowModal(false)}
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    className="bg-gradient-to-r from-green-500 to-teal-600 text-white px-6 py-2 rounded-full hover:from-green-600 hover:to-teal-700 transition duration-200 shadow-md"
+                                    onClick={addGarden}
+                                >
+                                    Lưu
+                                </button>
                             </div>
                         </div>
                     </div>
                 )}
+
+                {showDeleteConfirm && (
+                    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                        <div className="bg-white p-8 rounded-2xl w-96 shadow-2xl transform transition-all duration-300 scale-100 hover:scale-105">
+                            <h2 className="text-2xl font-bold mb-6 text-red-700 tracking-tight">Xác nhận xóa khu vườn</h2>
+                            <p className="text-gray-600 mb-4">
+                                Vui lòng nhập key của khu vườn <span className="font-semibold">{gardenToDelete?.gardenId}</span> để xác nhận xóa:
+                            </p>
+                            <input
+                                type="text"
+                                placeholder="Nhập key (e.g., key_1)"
+                                className="w-full p-3 mb-4 border border-red-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 transition duration-200 bg-gray-50"
+                                value={inputKey}
+                                onChange={(e) => setInputKey(e.target.value)}
+                            />
+                            <div className="flex justify-end space-x-4">
+                                <button
+                                    className="bg-gray-400 text-white px-6 py-2 rounded-full hover:bg-gray-500 transition duration-200 shadow-md"
+                                    onClick={() => {
+                                        setShowDeleteConfirm(false);
+                                        setInputKey("");
+                                        setGardenToDelete(null);
+                                    }}
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600 transition duration-200 shadow-md"
+                                    onClick={confirmDeleteGarden}
+                                >
+                                    Xác nhận
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <style jsx>{`
+                    @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(-20px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                    .animate-fadeIn {
+                        animation: fadeIn 0.8s ease-out;
+                    }
+                `}</style>
             </div>
-
-            {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-                    <div className="bg-white p-8 rounded-2xl w-96 shadow-2xl transform transition-all duration-300 scale-100 hover:scale-105">
-                        <h2 className="text-2xl font-bold mb-6 text-green-700 tracking-tight">Add New Garden</h2>
-                        <input
-                            type="text"
-                            placeholder="Key (e.g., key_4)"
-                            className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
-                            value={formData.key || ""}
-                            onChange={(e) => setFormData({ ...formData, key: e.target.value })}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Garden ID (e.g., gardenId4)"
-                            className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
-                            value={formData.gardenId || ""}
-                            onChange={(e) => setFormData({ ...formData, gardenId: e.target.value })}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Garden Name"
-                            className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
-                            value={formData.name || ""}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        />
-                        <input
-                            type="number"
-                            placeholder="Latitude"
-                            className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
-                            value={formData.latitude || ""}
-                            onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) })}
-                        />
-                        <input
-                            type="number"
-                            placeholder="Longitude"
-                            className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
-                            value={formData.longitude || ""}
-                            onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) })}
-                        />
-                        <input
-                            type="number"
-                            placeholder="Current Humidity"
-                            className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
-                            value={formData.currentHumidity || ""}
-                            onChange={(e) => setFormData({ ...formData, currentHumidity: parseInt(e.target.value) })}
-                        />
-                        <input
-                            type="number"
-                            placeholder="Max Humidity"
-                            className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
-                            value={formData.maxHumidity || ""}
-                            onChange={(e) => setFormData({ ...formData, maxHumidity: parseInt(e.target.value) })}
-                        />
-                        <input
-                            type="number"
-                            placeholder="Min Humidity"
-                            className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
-                            value={formData.minHumidity || ""}
-                            onChange={(e) => setFormData({ ...formData, minHumidity: parseInt(e.target.value) })}
-                        />
-                        <input
-                            type="number"
-                            placeholder="Time (minutes)"
-                            className="w-full p-3 mb-4 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 bg-gray-50"
-                            value={formData.time || ""}
-                            onChange={(e) => setFormData({ ...formData, time: parseInt(e.target.value) })}
-                        />
-                        <div className="flex justify-end space-x-4">
-                            <button
-                                className="bg-gray-400 text-white px-6 py-2 rounded-full hover:bg-gray-500 transition duration-200 shadow-md"
-                                onClick={() => setShowModal(false)}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="bg-gradient-to-r from-green-500 to-teal-600 text-white px-6 py-2 rounded-full hover:from-green-600 hover:to-teal-700 transition duration-200 shadow-md"
-                                onClick={addGarden}
-                            >
-                                Save
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showDeleteConfirm && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-                    <div className="bg-white p-8 rounded-2xl w-96 shadow-2xl transform transition-all duration-300 scale-100 hover:scale-105">
-                        <h2 className="text-2xl font-bold mb-6 text-red-700 tracking-tight">Xác nhận xóa khu vườn</h2>
-                        <p className="text-gray-600 mb-4">
-                            Vui lòng nhập key của khu vườn <span className="font-semibold">{gardenToDelete?.gardenId}</span> để xác nhận xóa:
-                        </p>
-                        <input
-                            type="text"
-                            placeholder="Nhập key (e.g., key_1)"
-                            className="w-full p-3 mb-4 border border-red-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 transition duration-200 bg-gray-50"
-                            value={inputKey}
-                            onChange={(e) => setInputKey(e.target.value)}
-                        />
-                        <div className="flex justify-end space-x-4">
-                            <button
-                                className="bg-gray-400 text-white px-6 py-2 rounded-full hover:bg-gray-500 transition duration-200 shadow-md"
-                                onClick={() => {
-                                    setShowDeleteConfirm(false);
-                                    setInputKey("");
-                                    setGardenToDelete(null);
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600 transition duration-200 shadow-md"
-                                onClick={confirmDeleteGarden}
-                            >
-                                Confirm
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <style jsx>{`
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(-20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                .animate-fadeIn {
-                    animation: fadeIn 0.8s ease-out;
-                }
-            `}</style>
         </div>
     );
 };

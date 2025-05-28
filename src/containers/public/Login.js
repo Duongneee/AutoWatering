@@ -27,12 +27,12 @@ const Login = () => {
                     const userData = snapshot.val();
                     if (userData && userData.role === 1) {
                         // Nếu role = 1, điều hướng đến trang Admin
-                        navigate(path.ADMIN); 
+                        navigate(path.ADMIN);
                     } else {
-                        navigate(path.GARDENLIST);
+                        navigate(path.DEVICELIST);
                     }
                 },
-                { onlyOnce: true } 
+                { onlyOnce: true }
             );
         } catch (error) {
             setError(error.message);
