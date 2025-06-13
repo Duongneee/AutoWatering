@@ -56,12 +56,12 @@
 //           </div>
 //           <div className="absolute w-24 h-24 bg-green-300 rounded-full opacity-50 animate-ping"></div>
 //         </div>
-  
+
 //         {/* Văn bản loading */}
 //         <span className="mt-4 text-green-700 text-lg font-semibold animate-pulse">
 //           Đang tải dữ liệu ... 🌿 Xin vui lòng chờ!!!
 //         </span>
-  
+
 //         {/* Hiệu ứng nước */}
 //         <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
 //           <svg className="relative block w-full h-20 fill-green-400" viewBox="0 0 1440 320">
@@ -71,7 +71,7 @@
 //       </div>
 //     );
 //   }
-  
+
 
 //   return (
 //     <div className="flex flex-col h-screen bg-gradient-to-br from-green-50 to-gray-50">
@@ -174,9 +174,9 @@ const MapScreen = () => {
   )}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-green-50 to-gray-50">
+    <div className="flex flex-col h-screen bg-green-100">
       {/* Header */}
-      <div className="bg-green-700 text-white py-4 px-6 flex items-center justify-between shadow-lg">
+      <div className="bg-green-100 text-white py-4 px-6 flex items-center justify-between shadow-lg">
         <div className="flex items-center gap-3">
           <FaMapMarkerAlt className="text-2xl" />
           <h1 className="text-xl font-bold">Map Viewer</h1>

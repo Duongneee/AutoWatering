@@ -7,22 +7,19 @@ import { TbReportMoney } from 'react-icons/tb'
 import { RiCrop2Line, RiHeartFill, RiHeartLine } from 'react-icons/ri'
 import { MdOutlineHouseSiding } from 'react-icons/md'
 import { FiSearch } from 'react-icons/fi'
-import { BsBookmarkStarFill, BsCameraFill, BsStopwatch,BsDot,BsTelephoneFill} from 'react-icons/bs'
+import { BsBookmarkStarFill, BsCameraFill, BsStopwatch, BsDot, BsTelephoneFill } from 'react-icons/bs'
 import { ImPencil2, ImBin } from 'react-icons/im'
 import { MdOutlineLibraryBooks } from "react-icons/md";
 import { BiUserPin } from "react-icons/bi";
 import { LiaMoneyBillWaveSolid } from "react-icons/lia";
 import { GiMoneyStack } from "react-icons/gi";
-import {SiZalo} from 'react-icons/si'
+import { SiZalo } from 'react-icons/si'
 import { RiRobot3Line } from "react-icons/ri";
 import { TiWeatherPartlySunny } from "react-icons/ti";
 import { GrMap } from "react-icons/gr";
 
-
-
-
 const icons = {
-    TiWeatherPartlySunny ,
+    TiWeatherPartlySunny,
     GrMap,
     RiRobot3Line,
     FaRegNewspaper,

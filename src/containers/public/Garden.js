@@ -98,7 +98,7 @@ const AddDevice = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-100 via-teal-100 to-blue-100 flex items-center justify-center px-4 py-12">
+        <div className="min-h-screen bg-green-100 flex items-center justify-center px-4 py-12">
             <div className="relative bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md transform transition-all hover:shadow-3xl animate-fade-in">
                 <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-14 h-14 bg-gradient-to-br from-green-400 to-teal-500 rounded-full flex items-center justify-center shadow-lg">
                     <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -137,7 +137,7 @@ const AddDevice = () => {
                         <button
                             onClick={handleSave}
                             disabled={isLoading}
-                            className={`w-full bg-gradient-to-r from-green-500 to-teal-500 text-white py-3 rounded-xl font-semibold text-lg shadow-md hover:from-green-600 hover:to-teal-600 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`w-full bg-gradient-to-r from-green-400 to-green-500 text-white py-3 rounded-xl font-semibold text-lg shadow-md hover:from-green-600 hover:to-teal-600 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             {isLoading ? 'Đang xử lý...' : (
                                 <>

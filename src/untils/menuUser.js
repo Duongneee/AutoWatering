@@ -1,6 +1,6 @@
 import icons from './icon'
 
-const { ImPencil2, MdOutlineLibraryBooks, RiRobot3Line, TiWeatherPartlySunny, GrMap } = icons
+const { ImPencil2, MdOutlineLibraryBooks, RiRobot3Line, TiWeatherPartlySunny } = icons
 
 const menuUser = [
     {

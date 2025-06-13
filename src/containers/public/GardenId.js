@@ -130,8 +130,8 @@ const DeviceId = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-100 via-green-50 to-green-200 p-6 flex items-center justify-center">
-            <div className="bg-white shadow-2xl rounded-2xl w-full max-w-4xl p-8 transform transition-all hover:scale-[1.01]">
+        <div className="min-h-screen bg-green-100 p-6 flex items-center justify-center">
+            <div className="bg-green-100 shadow-2xl rounded-2xl w-full max-w-4xl p-8 transform transition-all hover:scale-[1.01]">
                 {/* Header */}
                 <div className="flex items-center justify-center mb-8 relative">
                     {editingName ? (
@@ -158,7 +158,7 @@ const DeviceId = () => {
                         </div>
                     ) : (
                         <>
-                            <h1 className="text-3xl font-bold text-green-700 text-center">
+                            <h1 className="text-3xl font-extrabold bg-gradient-to-r from-teal-600 to-blue-700 bg-clip-text text-transparent text-center mx-auto animate-fadeIn">
                                 {deviceName || 'Thiết bị của bạn'}
                             </h1>
                             <div className="absolute right-0 flex gap-2">
@@ -249,7 +249,7 @@ const DeviceId = () => {
                             </button>
                             <button
                                 onClick={() => handlePumpControl(20)}
-                                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${(pumpStatus === 20 || pumpStatus === 21) ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white'}`}
+                                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${(pumpStatus === 20 || pumpStatus === 21) ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white'}`}
                             >
                                 Tự động
                             </button>

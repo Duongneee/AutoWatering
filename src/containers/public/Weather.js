@@ -71,7 +71,7 @@ const Weather = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-200 via-teal-100 to-cyan-200 flex items-center justify-center p-6">
+        <div className="min-h-screen bg-green-100 to-cyan-200 flex items-center justify-center p-6">
             <div className="relative bg-white bg-opacity-90 backdrop-blur-md rounded-3xl shadow-2xl p-8 w-full max-w-lg transform transition-all hover:shadow-3xl border border-gray-100">
                 {/* Tiêu đề */}
                 <h2 className="text-4xl font-extrabold text-center bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent mb-8">
@@ -124,7 +124,7 @@ const Weather = () => {
                         </div>
                         <p className="text-xl text-gray-600 capitalize">{weather.weather[0].description}</p>
                         <p className="text-5xl font-bold text-teal-700 flex items-center justify-center gap-2">
-                        <WiThermometer className="text-teal-600" /> {weather.main.temp.toFixed(1)}°C
+                            <WiThermometer className="text-teal-600" /> {weather.main.temp.toFixed(1)}°C
                         </p>
                         <div className="grid grid-cols-2 gap-4 text-gray-700">
                             <p className="flex items-center justify-center gap-2">

@@ -73,10 +73,9 @@ const Sidebar = () => {
                         key={item.id}
                         to={item?.path}
                         className={({ isActive }) =>
-                            `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${
-                                isActive
-                                    ? 'bg-green-600 text-white shadow-md'
-                                    : 'text-gray-700 hover:bg-green-100 hover:text-green-700'
+                            `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${isActive
+                                ? 'bg-green-600 text-white shadow-md'
+                                : 'text-gray-700 hover:bg-green-100 hover:text-green-700'
                             }`
                         }
                     >
@@ -89,7 +88,7 @@ const Sidebar = () => {
             {/* Logout Button */}
             <button
                 onClick={handleLogout}
-                className="mt-auto w-full flex items-center gap-3 px-4 py-3 text-red-600 bg-red-50 rounded-lg hover:bg-red-600 hover:text-white transition-all duration-300"
+                className="mt-auto w-full flex items-center gap-3 px-4 py-3 text-white bg-red-500 rounded-lg hover:bg-red-600 hover:text-white transition-all duration-300"
             >
                 <AiOutlineLogout size={22} />
                 <span className="font-medium">Thoát</span>

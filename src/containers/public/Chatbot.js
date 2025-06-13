@@ -143,7 +143,7 @@ const Chatbot = () => {
           "Api-Key": process.env.REACT_APP_PLANT_ID_API_KEY,
         },
       });
-      
+
       console.log("API Response:", response.data);
 
       const { result } = response.data;
@@ -230,8 +230,8 @@ const Chatbot = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-green-50 to-gray-50">
-      <div className="bg-green-700 text-white py-6 px-6 text-2xl font-bold flex items-center justify-center gap-3 shadow-lg">
+    <div className="flex flex-col h-screen bg-green-100 ">
+      <div className="bg-green-500 text-white py-6 px-6 text-2xl font-bold flex items-center justify-center gap-3 shadow-lg">
         <FaLeaf className="text-3xl" />
         Plant ChatBot
       </div>
@@ -242,9 +242,8 @@ const Chatbot = () => {
             className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`px-5 py-3 rounded-2xl max-w-md shadow-md ${
-                msg.sender === "user" ? "bg-green-500 text-white" : "bg-white text-gray-800"
-              }`}
+              className={`px-5 py-3 rounded-2xl max-w-md shadow-md ${msg.sender === "user" ? "bg-green-500 text-white" : "bg-white text-gray-800"
+                }`}
             >
               {msg.image ? (
                 <img
@@ -266,7 +265,7 @@ const Chatbot = () => {
           </div>
         )}
       </div>
-      <div className="flex justify-center gap-6 p-6 bg-white shadow-inner border-t border-gray-100">
+      <div className="flex justify-center gap-6 p-6 bg-green-100 shadow-inner border-t border-gray-100">
         <input
           type="file"
           accept="image/*"
@@ -281,14 +280,14 @@ const Chatbot = () => {
           <FaImage className="text-2xl text-gray-600" />
         </label>
         <button
-          className="bg-green-600 text-white px-6 py-3 rounded-xl shadow-md hover:bg-green-700 transition disabled:bg-gray-400 text-sm font-semibold"
+          className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl shadow-md hover:from-green-600 hover:to-green-700  transition disabled:bg-gray-400 text-sm font-semibold"
           onClick={() => handlePlantIdentification(image, false)}
           disabled={loading}
         >
           Nhận diện cây
         </button>
         <button
-          className="bg-red-600 text-white px-6 py-3 rounded-xl shadow-md hover:bg-red-700 transition disabled:bg-gray-400 text-sm font-semibold"
+          className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-6 py-3 rounded-xl shadow-md hover:bg-gradient-to-r from-teal-600 hover:to-teal-700 transition disabled:bg-gray-400 text-sm font-semibold"
           onClick={() => handlePlantIdentification(image, true)}
           disabled={loading}
         >

@@ -5,46 +5,42 @@ import { realtimedb } from '../../firebaseConfig';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 
-const AdminGardenDetail = () => {
-    const { gardenId } = useParams();
+const AdminDeviceDetail = () => {
+    const { deviceId } = useParams();
     const [soilMoisture, setSoilMoisture] = useState(0);
-    const [pumpStatus, setPumpStatus] = useState(0);
+    const [pumpStatus, setPumpStatus] = useState('');
     const [historyData, setHistoryData] = useState([]);
-    const [gardenName, setGardenName] = useState('');
+    const [deviceName, setDeviceName] = useState('');
     const [minMoisture, setMinMoisture] = useState('');
     const [maxMoisture, setMaxMoisture] = useState('');
     const [time, setTime] = useState('');
-    const [latitude, setLatitude] = useState('');
-    const [longitude, setLongitude] = useState('');
     const [ownerEmail, setOwnerEmail] = useState('Chưa gán');
     const [keys, setKeys] = useState({});
-    const [users, setUsers] = useState({}); // Thêm state cho users
+    const [users, setUsers] = useState({});
     const [editingName, setEditingName] = useState(false);
-    const [newGardenName, setNewGardenName] = useState('');
+    const [newDeviceName, setNewDeviceName] = useState('');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [inputKey, setInputKey] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!gardenId) return;
+        if (!deviceId) return;
 
-        const gardenRef = ref(realtimedb, `gardens/${gardenId}`);
+        const deviceRef = ref(realtimedb, `devices/${deviceId}`);
         const keysRef = ref(realtimedb, 'keys');
         const usersRef = ref(realtimedb, 'users');
 
-        // Lấy thông tin khu vườn
-        onValue(gardenRef, (snapshot) => {
+        // Lấy thông tin thiết bị
+        onValue(deviceRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                setGardenName(data.name || '');
-                setNewGardenName(data.name || '');
+                setDeviceName(data.name || '');
+                setNewDeviceName(data.name || '');
                 setSoilMoisture(data.doAmDat?.current || 0);
-                setPumpStatus(data.mayBom?.trangThai || 0);
+                setPumpStatus(data.mayBom?.trangThai || '');
                 setMinMoisture(data.doAmDat?.min || '');
                 setMaxMoisture(data.doAmDat?.max || '');
                 setTime(data.time || '');
-                setLatitude(data.location?.Latitude || '');
-                setLongitude(data.location?.Longitude || '');
 
                 const history = data.doAmDat?.history;
                 if (history) {
@@ -52,7 +48,7 @@ const AdminGardenDetail = () => {
                         time: new Date(history[key].time).getTime(),
                         value: parseFloat(history[key].value),
                     }));
-                    setHistoryData(historyArray);
+                    setHistoryData(historyArray.sort((a, b) => a.time - b.time));
                 }
             }
         });
@@ -60,48 +56,46 @@ const AdminGardenDetail = () => {
         // Lấy danh sách keys
         onValue(keysRef, (snapshot) => setKeys(snapshot.val() || {}));
 
-        // Lấy danh sách users
+        // Lấy danh sách users và xác định chủ sở hữu qua groups
         onValue(usersRef, (snapshot) => {
             const usersData = snapshot.val() || {};
             setUsers(usersData);
-            const owner = Object.entries(usersData).find(([uid, user]) =>
-                user.gardens && user.gardens[gardenId] === true
-            );
-            setOwnerEmail(owner ? owner[1].email : 'Chưa gán');
+            let foundOwner = 'Chưa gán';
+            Object.values(usersData).forEach((user) => {
+                Object.values(user.groups || {}).forEach((group) => {
+                    if (group.devices && group.devices[deviceId] === true) {
+                        foundOwner = user.email;
+                    }
+                });
+            });
+            setOwnerEmail(foundOwner);
         });
-    }, [gardenId]);
+    }, [deviceId]);
 
     const handlePumpControl = (status) => {
-        set(ref(realtimedb, `gardens/${gardenId}/mayBom/trangThai`), status)
+        set(ref(realtimedb, `devices/${deviceId}/mayBom/trangThai`), status)
             .catch((error) => console.error("Lỗi khi cập nhật trạng thái máy bơm:", error));
     };
 
     const handleEditName = () => setEditingName(true);
     const handleSaveName = () => {
-        set(ref(realtimedb, `gardens/${gardenId}/name`), newGardenName)
+        set(ref(realtimedb, `devices/${deviceId}/name`), newDeviceName)
             .then(() => {
-                setGardenName(newGardenName);
+                setDeviceName(newDeviceName);
                 setEditingName(false);
             })
-            .catch((error) => console.error("Lỗi khi cập nhật tên khu vườn:", error));
+            .catch((error) => console.error("Lỗi khi cập nhật tên thiết bị:", error));
     };
     const handleCancelEdit = () => {
-        setNewGardenName(gardenName);
+        setNewDeviceName(deviceName);
         setEditingName(false);
-    };
-
-    const handleLocationChange = () => {
-        set(ref(realtimedb, `gardens/${gardenId}/location`), {
-            Latitude: parseFloat(latitude),
-            Longitude: parseFloat(longitude),
-        }).catch((error) => console.error("Lỗi khi cập nhật tọa độ:", error));
     };
 
     const handleMinMoistureChange = (e) => {
         const newMin = parseInt(e.target.value, 10);
         if (!isNaN(newMin)) {
             setMinMoisture(newMin);
-            set(ref(realtimedb, `gardens/${gardenId}/doAmDat/min`), newMin);
+            set(ref(realtimedb, `devices/${deviceId}/doAmDat/min`), newMin);
         }
     };
 
@@ -109,7 +103,7 @@ const AdminGardenDetail = () => {
         const newMax = parseInt(e.target.value, 10);
         if (!isNaN(newMax)) {
             setMaxMoisture(newMax);
-            set(ref(realtimedb, `gardens/${gardenId}/doAmDat/max`), newMax);
+            set(ref(realtimedb, `devices/${deviceId}/doAmDat/max`), newMax);
         }
     };
 
@@ -117,23 +111,26 @@ const AdminGardenDetail = () => {
         const newTime = parseInt(e.target.value, 10);
         if (!isNaN(newTime)) {
             setTime(newTime);
-            set(ref(realtimedb, `gardens/${gardenId}/time`), newTime);
+            set(ref(realtimedb, `devices/${deviceId}/time`), newTime);
         }
     };
 
     const handleDelete = () => setShowDeleteModal(true);
 
     const confirmDelete = () => {
-        const correctKey = Object.entries(keys).find(([_, value]) => value === gardenId)?.[0];
+        const correctKey = Object.entries(keys).find(([_, value]) => value === deviceId)?.[0];
         if (inputKey === correctKey) {
-            remove(ref(realtimedb, `gardens/${gardenId}`));
+            remove(ref(realtimedb, `devices/${deviceId}`));
+            Object.values(users).forEach((user) => {
+                Object.values(user.groups || {}).forEach((group) => {
+                    if (group.devices && group.devices[deviceId]) {
+                        const groupId = Object.keys(user.groups).find(key => user.groups[key] === group);
+                        remove(ref(realtimedb, `users/${user.uid}/groups/${groupId}/devices/${deviceId}`));
+                    }
+                });
+            });
             const keyToDelete = correctKey;
             if (keyToDelete) remove(ref(realtimedb, `keys/${keyToDelete}`));
-            Object.entries(users).forEach(([uid, user]) => {
-                if (user.gardens && user.gardens[gardenId]) {
-                    remove(ref(realtimedb, `users/${uid}/gardens/${gardenId}`));
-                }
-            });
             setShowDeleteModal(false);
             navigate('/admin');
         } else {
@@ -164,10 +161,10 @@ const AdminGardenDetail = () => {
                         <div className="flex items-center w-full gap-4">
                             <input
                                 type="text"
-                                value={newGardenName}
-                                onChange={(e) => setNewGardenName(e.target.value)}
+                                value={newDeviceName}
+                                onChange={(e) => setNewDeviceName(e.target.value)}
                                 className="flex-1 px-4 py-2 text-lg border-2 border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
-                                placeholder="Nhập tên khu vườn"
+                                placeholder="Nhập tên thiết bị"
                             />
                             <button
                                 onClick={handleSaveName}
@@ -185,7 +182,7 @@ const AdminGardenDetail = () => {
                     ) : (
                         <>
                             <h1 className="text-3xl font-bold text-green-700 text-center">
-                                {gardenName || 'Khu vườn của bạn'} (Admin View)
+                                {deviceName || 'Thiết bị của bạn'} (Admin View)
                             </h1>
                             <div className="absolute right-0 flex gap-2">
                                 <button
@@ -217,10 +214,10 @@ const AdminGardenDetail = () => {
                             Chủ sở hữu: <span className="text-green-700 font-bold">{ownerEmail}</span>
                         </p>
                         <p className="text-xl font-medium text-gray-800 mt-2">
-                            Garden ID: <span className="text-green-700 font-bold">{gardenId}</span>
+                            Device ID: <span className="text-green-700 font-bold">{deviceId}</span>
                         </p>
                         <p className="text-xl font-medium text-gray-800 mt-2">
-                            Key: <span className="text-green-700 font-bold">{Object.entries(keys).find(([_, value]) => value === gardenId)?.[0] || 'N/A'}</span>
+                            Key: <span className="text-green-700 font-bold">{Object.entries(keys).find(([_, value]) => value === deviceId)?.[0] || 'N/A'}</span>
                         </p>
                     </div>
 
@@ -229,39 +226,6 @@ const AdminGardenDetail = () => {
                         <p className="text-xl font-medium text-gray-800">
                             Độ ẩm đất hiện tại: <span className="text-green-700 font-bold">{soilMoisture}%</span>
                         </p>
-                    </div>
-
-                    {/* Location */}
-                    <div className="p-4 bg-green-50 rounded-lg shadow-sm">
-                        <h2 className="text-xl font-semibold text-green-700 mb-4">Tọa độ</h2>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Vĩ độ</label>
-                                <input
-                                    type="number"
-                                    value={latitude}
-                                    onChange={(e) => setLatitude(e.target.value)}
-                                    className="w-full px-4 py-2 mt-1 border-2 border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
-                                    placeholder="Nhập vĩ độ"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Kinh độ</label>
-                                <input
-                                    type="number"
-                                    value={longitude}
-                                    onChange={(e) => setLongitude(e.target.value)}
-                                    className="w-full px-4 py-2 mt-1 border-2 border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
-                                    placeholder="Nhập kinh độ"
-                                />
-                            </div>
-                        </div>
-                        <button
-                            onClick={handleLocationChange}
-                            className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200"
-                        >
-                            Cập nhật tọa độ
-                        </button>
                     </div>
 
                     {/* Moisture Limits */}
@@ -308,27 +272,27 @@ const AdminGardenDetail = () => {
                         <h2 className="text-xl font-semibold text-green-700 mb-4">Điều khiển máy bơm</h2>
                         <div className="grid grid-cols-3 gap-4">
                             <button
-                                onClick={() => handlePumpControl(1)}
-                                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${pumpStatus === 1 ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-green-500 hover:text-white'}`}
+                                onClick={() => handlePumpControl('On')}
+                                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${pumpStatus === 'On' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-green-500 hover:text-white'}`}
                             >
                                 Bật
                             </button>
                             <button
-                                onClick={() => handlePumpControl(0)}
-                                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${pumpStatus === 0 ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-red-500 hover:text-white'}`}
+                                onClick={() => handlePumpControl('Off')}
+                                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${pumpStatus === 'Off' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-red-500 hover:text-white'}`}
                             >
                                 Tắt
                             </button>
                             <button
-                                onClick={() => handlePumpControl(20)}
-                                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${(pumpStatus === 20 || pumpStatus === 21) ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white'}`}
+                                onClick={() => handlePumpControl('Auto')}
+                                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${pumpStatus === 'Auto' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white'}`}
                             >
                                 Tự động
                             </button>
                         </div>
                         <p className="mt-2 text-sm text-gray-600">
                             Trạng thái: <span className="font-semibold text-green-700">
-                                {pumpStatus === 20 ? 'Tự động (Tắt)' : pumpStatus === 21 ? 'Tự động (Bật)' : pumpStatus === 1 ? 'Bật' : 'Tắt'}
+                                {pumpStatus === 'Auto' ? 'Tự động' : pumpStatus}
                             </span>
                         </p>
                     </div>
@@ -351,9 +315,9 @@ const AdminGardenDetail = () => {
                 {showDeleteModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start pt-20 z-50">
                         <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-                            <h3 className="text-xl font-semibold text-gray-800 mb-4">Xác nhận xóa khu vườn</h3>
+                            <h3 className="text-xl font-semibold text-gray-800 mb-4">Xác nhận xóa thiết bị</h3>
                             <p className="text-gray-600 mb-4">
-                                Nhập key của khu vườn <span className="font-bold text-green-700">{gardenId}</span> để xác nhận xóa hoàn toàn:
+                                Nhập key của thiết bị <span className="font-bold text-green-700">{deviceId}</span> để xác nhận xóa hoàn toàn:
                             </p>
                             <input
                                 type="text"
@@ -384,4 +348,4 @@ const AdminGardenDetail = () => {
     );
 };
 
-export default AdminGardenDetail;
+export default AdminDeviceDetail;

@@ -28,7 +28,7 @@ const DeviceCard = ({ device, onRemoveDeviceFromGroup, groupId }) => (
             </p>
             <div className="flex gap-3">
                 <Link to={`/devices/${device.id}`} className="flex-1">
-                    <button className="w-full bg-gradient-to-r from-teal-500 to-blue-600 text-white py-2 px-4 rounded-lg shadow-md hover:from-teal-600 hover:to-blue-700 transition-all duration-300 flex items-center justify-center gap-2">
+                    <button className="w-full bg-gradient-to-r from-green-400 to-green-500 text-white py-2 px-4 rounded-lg shadow-md hover:from-green-500 hover:to-green-600 transition-all duration-300 flex items-center justify-center gap-2">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                         </svg>
@@ -79,7 +79,7 @@ const AddDeviceToGroupForm = ({ groupId, devices, groups, onAddDeviceToGroup }) 
                 </select>
                 <button
                     onClick={handleAdd}
-                    className="bg-teal-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-teal-600 transition-all duration-300"
+                    className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-gradient-to-r from-teal-500 to-teal-600 transition-all duration-300"
                 >
                     Thêm
                 </button>
@@ -96,18 +96,18 @@ const GroupSection = ({ group, groupId, devices, groups, onAddDeviceToGroup, onD
 
     return (
         <div className="mb-12">
-            <div className="flex flex-col items-center mb-6 bg-teal-50 p-5 rounded-xl shadow-sm">
+            <div className="flex flex-col items-center mb-6 bg-green-100 p-5 rounded-xl shadow-sm">
                 <h2 className="text-2xl font-bold text-teal-800 mb-4">{group.name}</h2>
                 <div className="flex gap-4">
                     <button
                         onClick={() => setShowAddForm(!showAddForm)}
-                        className="bg-teal-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-teal-600 transition-all duration-300"
+                        className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-6 py-2 rounded-lg shadow-md hover:from-teal-600 hover:to-teal-700 transition-all duration-300"
                     >
                         {showAddForm ? 'Ẩn' : 'Thêm thiết bị'}
                     </button>
                     <Link to={`/overview/${groupId}`}>
                         <button
-                            className="bg-blue-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-blue-600 transition-all duration-300"
+                            className="bg-gradient-to-r from-green-400 to-green-500 text-white px-6 py-2 rounded-lg shadow-md hover:from-green-500 hover:to-green-600 transition-all duration-300"
                         >
                             Xem tổng quan
                         </button>
@@ -322,7 +322,7 @@ const DeviceList = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-teal-50 via-green-50 to-blue-50 px-8 py-12 flex flex-col items-center">
+        <div className="min-h-screen bg-green-100 px-8 py-12 flex flex-col items-center">
             <div className="w-full max-w-7xl flex justify-between items-center mb-12">
                 <h1 className="text-5xl font-extrabold bg-gradient-to-r from-teal-600 to-blue-700 bg-clip-text text-transparent text-center mx-auto animate-fadeIn">
                     Danh Sách Thiết Bị

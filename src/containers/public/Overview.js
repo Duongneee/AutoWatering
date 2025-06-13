@@ -98,7 +98,7 @@ const GroupOverview = () => {
     const groupDevices = devices; // Đã lọc trong useEffect
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-teal-50 via-green-50 to-blue-50 px-8 py-12 flex flex-col items-center">
+        <div className="min-h-screen bg-green-50 px-8 py-12 flex flex-col items-center">
             <div className="w-full max-w-7xl">
                 <h1 className="text-4xl font-extrabold bg-gradient-to-r from-teal-600 to-blue-700 bg-clip-text text-transparent text-center mb-8">
                     Tổng quan khu vực: {group.name}
